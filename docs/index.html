@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Zimupaper · Trading Bot Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131823; --panel2:#1a2030; --line:#242c3d;
+    --txt:#e6ebf5; --muted:#8a94a8; --accent:#3b82f6; --green:#22c55e;
+    --red:#ef4444; --amber:#f59e0b; --teal:#14b8a6;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);
+    font-size:14px;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 18px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  h1{font-size:20px;margin:0;letter-spacing:.3px}
+  h1 .sub{color:var(--muted);font-weight:400;font-size:13px;margin-left:8px}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;
+    font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .badge.paper{background:rgba(59,130,246,.15);color:#7eb0ff;border:1px solid rgba(59,130,246,.3)}
+  .badge.live{background:rgba(239,68,68,.15);color:#ff9b9b;border:1px solid rgba(239,68,68,.35)}
+  .updated{color:var(--muted);font-size:12px}
+  .disclaimer{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);
+    color:#f5d390;border-radius:10px;padding:10px 14px;font-size:12.5px;margin-bottom:20px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .card .label{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px}
+  .card .value{font-size:24px;font-weight:650;margin-top:6px;font-variant-numeric:tabular-nums}
+  .card .meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .pos{color:var(--green)} .neg{color:var(--red)} .neu{color:var(--muted)}
+  .bar{height:8px;background:var(--panel2);border-radius:6px;margin-top:10px;overflow:hidden}
+  .bar>span{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--teal),var(--green))}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+  .panel h2{font-size:14px;margin:0 0 14px;color:var(--txt);font-weight:600;
+    text-transform:uppercase;letter-spacing:.6px}
+  canvas{max-height:340px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:7px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
+  tbody tr:hover{background:var(--panel2)}
+  .chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--mono)}
+  .chip.bull{background:rgba(34,197,94,.15);color:#7ee2a4}
+  .chip.bear{background:rgba(239,68,68,.15);color:#ff9b9b}
+  .chip.chop{background:rgba(245,158,11,.15);color:#f5d390}
+  .chip.high_vol{background:rgba(239,68,68,.2);color:#ffb3b3}
+  .chip.buy{background:rgba(34,197,94,.15);color:#7ee2a4}
+  .chip.sell{background:rgba(239,68,68,.15);color:#ff9b9b}
+  .flags{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .flag{font-size:11px;padding:3px 9px;border-radius:6px;background:var(--panel2);color:var(--muted)}
+  .flag.on{background:rgba(245,158,11,.16);color:#f5d390}
+  .flag.lock{background:rgba(34,197,94,.16);color:#7ee2a4}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  .empty{color:var(--muted);text-align:center;padding:30px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+  .notebox{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:pre-wrap}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="title">Zimupaper <span class="sub">agentic trading bot</span></h1>
+      <div class="updated" id="updated">loading…</div>
+    </div>
+    <div id="modeBadge"></div>
+  </header>
+
+  <div class="disclaimer" id="disclaimer">
+    ⚠️ <b>Paper trading.</b> The weekly target is an aspiration the bot stops at when reached,
+    not a guarantee. No algorithm can guarantee positive returns. Nothing here is financial advice.
+  </div>
+
+  <div class="grid" id="kpis"></div>
+
+  <div class="panel">
+    <h2>Equity curve vs benchmark</h2>
+    <canvas id="equityChart"></canvas>
+  </div>
+
+  <div class="two">
+    <div class="panel">
+      <h2>This week — progress to target</h2>
+      <div id="weekBox"></div>
+    </div>
+    <div class="panel">
+      <h2>Current positions</h2>
+      <div id="positions"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Agent decisions (most recent first)</h2>
+    <div id="decisions"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Recent trades</h2>
+    <div id="trades"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Activity log</h2>
+    <div class="notebox" id="notes"></div>
+  </div>
+
+  <div class="updated" style="text-align:center">
+    Built by an autonomous Claude agent · data refreshes when the bot runs ·
+    <span id="footerMode"></span>
+  </div>
+</div>
+
+<script>
+const pct = x => (x>=0?"+":"") + (x*100).toFixed(2) + "%";
+const money = x => "$" + (x||0).toLocaleString(undefined,{maximumFractionDigits:0});
+const cls = x => x>0?"pos":(x<0?"neg":"neu");
+
+async function load(){
+  let d;
+  try { d = await (await fetch("./data.json?_="+Date.now())).json(); }
+  catch(e){
+    document.getElementById("kpis").innerHTML =
+      '<div class="empty">No data yet. Run the bot once (locally or via GitHub Actions) to populate the dashboard.</div>';
+    document.getElementById("updated").textContent = "no data";
+    return;
+  }
+  render(d);
+}
+
+function render(d){
+  const s = d.summary || {};
+  document.getElementById("title").innerHTML =
+    `${d.account_label||"Zimupaper"} <span class="sub">agentic trading bot</span>`;
+  document.getElementById("updated").textContent =
+    "Last updated: " + (d.updated_at ? new Date(d.updated_at).toLocaleString() : "—");
+  const mode = (d.mode||"paper");
+  document.getElementById("modeBadge").innerHTML =
+    `<span class="badge ${mode==='live'?'live':'paper'}">${mode}</span>`;
+  document.getElementById("footerMode").textContent = mode + " mode";
+  if(mode==='live'){
+    document.getElementById("disclaimer").innerHTML =
+      "🔴 <b>LIVE trading with real money.</b> Risk controls are active but losses are real. Nothing here is financial advice.";
+  }
+
+  const tgt = d.weekly_target||0.01;
+  const weekProg = Math.max(0, Math.min(1, (s.weekly_return||0)/tgt));
+  const kpis = [
+    {label:"Equity", value:money(s.equity), meta:`start ${money(s.starting_equity)}`},
+    {label:"Total return", value:pct(s.total_return||0), cls:cls(s.total_return)},
+    {label:`This week (target ${pct(tgt)})`, value:pct(s.weekly_return||0), cls:cls(s.weekly_return),
+      bar:weekProg, meta:s.week_locked?"✅ target hit — resting":"in progress"},
+    {label:"2-week block", value:pct(s.biweekly_return||0), cls:cls(s.biweekly_return),
+      meta:s.biweek_defending?"🛡️ defending gains":"open"},
+    {label:"Drawdown", value:pct(s.drawdown||0), cls:cls(s.drawdown), meta:`peak ${money(s.peak_equity)}`},
+  ];
+  document.getElementById("kpis").innerHTML = kpis.map(k=>`
+    <div class="card">
+      <div class="label">${k.label}</div>
+      <div class="value ${k.cls||''}">${k.value}</div>
+      ${k.bar!=null?`<div class="bar"><span style="width:${(k.bar*100).toFixed(0)}%"></span></div>`:''}
+      ${k.meta?`<div class="meta">${k.meta}</div>`:''}
+    </div>`).join("");
+
+  // status flags
+  const flags=[];
+  if(s.week_locked) flags.push(['lock','Weekly target locked']);
+  if(s.biweek_defending) flags.push(['on','Defending 2-week gains']);
+  if(s.drawdown_halted) flags.push(['on','Drawdown halt']);
+  if(s.restrategize_needed) flags.push(['on','Re-strategizing']);
+  if(s.daily_halt_date) flags.push(['on','Daily halt: '+s.daily_halt_date]);
+  document.getElementById("weekBox").innerHTML = `
+    <div class="value ${cls(s.weekly_return)}" style="font-size:30px;font-weight:700">${pct(s.weekly_return||0)}</div>
+    <div class="muted small">of ${pct(tgt)} weekly take-profit target</div>
+    <div class="bar" style="height:12px;margin-top:14px"><span style="width:${(weekProg*100).toFixed(0)}%"></span></div>
+    <div class="flags">${flags.length?flags.map(f=>`<span class="flag ${f[0]}">${f[1]}</span>`).join(''):'<span class="flag">all systems normal</span>'}</div>`;
+
+  drawChart(d);
+
+  // positions
+  const pos = d.positions||[];
+  document.getElementById("positions").innerHTML = pos.length ? `
+    <table><thead><tr><th>Symbol</th><th>Qty</th><th>Price</th><th>Value</th><th>Stop</th></tr></thead>
+    <tbody>${pos.map(p=>`<tr><td><b>${p.symbol}</b></td><td>${p.qty}</td><td>$${p.price}</td>
+      <td>${money(p.value)}</td><td class="muted">${p.stop?'$'+p.stop:'—'}</td></tr>`).join("")}</tbody></table>`
+    : '<div class="empty">Flat — no open positions (in cash).</div>';
+
+  // decisions
+  const dec = d.decisions||[];
+  document.getElementById("decisions").innerHTML = dec.length ? `
+    <table><thead><tr><th>Time</th><th>Regime</th><th>Strategy mix</th><th>Note</th></tr></thead>
+    <tbody>${dec.slice(0,30).map(x=>{
+      const mix = Object.entries(x.strategies||{}).filter(([,v])=>v>0.001)
+        .map(([k,v])=>`${k} ${(v*100).toFixed(0)}%`).join(", ")||"cash";
+      return `<tr><td class="muted small">${fmt(x.t)}</td>
+        <td><span class="chip ${x.regime}">${x.regime}</span></td>
+        <td class="small" style="text-align:left">${mix}</td>
+        <td class="muted small" style="text-align:left">${x.note||''}</td></tr>`;
+    }).join("")}</tbody></table>`
+    : '<div class="empty">No decisions logged yet.</div>';
+
+  // trades
+  const tr = d.trades||[];
+  document.getElementById("trades").innerHTML = tr.length ? `
+    <table><thead><tr><th>Time</th><th>Side</th><th>Symbol</th><th>Qty</th><th>Price</th><th>Reason</th></tr></thead>
+    <tbody>${tr.slice(0,40).map(t=>`<tr><td class="muted small">${fmt(t.t)}</td>
+      <td><span class="chip ${t.side}">${t.side}</span></td><td><b>${t.symbol}</b></td>
+      <td>${t.qty}</td><td>$${t.price}</td><td class="muted small" style="text-align:left">${t.reason||''}</td></tr>`).join("")}</tbody></table>`
+    : '<div class="empty">No trades yet.</div>';
+
+  document.getElementById("notes").textContent =
+    (d.notes||[]).join("\n") || "No activity logged yet.";
+}
+
+function fmt(t){ try{return new Date(t).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return t;} }
+
+let chart;
+function drawChart(d){
+  const eq = d.equity_curve||[];
+  const bench = d.benchmark_curve||[];
+  const labels = eq.map(p=>p.t);
+  const ctx = document.getElementById("equityChart");
+  if(chart) chart.destroy();
+  chart = new Chart(ctx,{
+    type:"line",
+    data:{labels,datasets:[
+      {label:"Portfolio",data:eq.map(p=>p.equity),borderColor:"#22c55e",
+        backgroundColor:"rgba(34,197,94,.08)",fill:true,tension:.15,pointRadius:0,borderWidth:2},
+      {label:d.benchmark+" (buy & hold)",data:bench.map(p=>p.value),borderColor:"#8a94a8",
+        borderDash:[5,4],fill:false,tension:.15,pointRadius:0,borderWidth:1.4},
+    ]},
+    options:{responsive:true,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{labels:{color:"#8a94a8",boxWidth:14}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": "+money(c.parsed.y)}}},
+      scales:{
+        x:{ticks:{color:"#6b7488",maxTicksLimit:8,callback:function(v){return fmt(this.getLabelForValue(v));}},grid:{color:"#1a2030"}},
+        y:{ticks:{color:"#6b7488",callback:v=>"$"+(v/1000).toFixed(0)+"k"},grid:{color:"#1a2030"}}}}
+  });
+}
+
+load();
+setInterval(load, 5*60*1000); // auto-refresh every 5 min
+</script>
+</body>
+</html>

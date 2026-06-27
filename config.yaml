@@ -1,0 +1,71 @@
+# ======================================================================
+# Zimupaper trading bot — configuration
+# Everything that shapes behaviour lives here. Edit and re-run; no code
+# changes needed. The bot is deterministic given this file + market data.
+# ======================================================================
+
+mode: paper          # paper | live   (live requires a funded Alpaca account)
+broker: alpaca       # alpaca | sim   (sim = offline, for backtests/tests)
+account_label: Zimupaper
+
+# --- Trading universe: diversified, liquid ETFs ("institutional" core) ----
+universe:
+  - SPY   # S&P 500
+  - QQQ   # Nasdaq 100
+  - DIA   # Dow 30
+  - IWM   # US small caps
+  - XLK   # Tech sector
+  - XLF   # Financials
+  - XLV   # Health care
+  - XLE   # Energy
+  - XLY   # Consumer discretionary
+  - XLP   # Consumer staples
+  - GLD   # Gold (diversifier)
+  - TLT   # Long US treasuries (diversifier)
+benchmark: SPY
+cash_asset: BIL      # 1-3 month T-bill ETF — where we "hide" when risk-off
+
+# --- The mandate (your targets) ------------------------------------------
+targets:
+  weekly_gain: 0.01          # +1% in a week -> take profit & STOP for the week
+  biweekly_preserve: true    # actively defend a non-negative close every 2 weeks
+
+# --- Risk controls: these ALWAYS override the return-seeking logic --------
+risk:
+  risk_per_trade: 0.01        # ~1% of equity risked per position (vol-targeted)
+  max_weight_per_name: 0.20   # never more than 20% of equity in one ticker
+  max_gross_exposure: 1.00    # fully invested at most — NO leverage
+  stop_loss_atr_mult: 2.5     # hard stop = entry - 2.5 * ATR(14)
+  rebalance_band: 0.02        # only adjust a holding when it drifts > 2% of equity (cuts churn)
+  daily_loss_halt: 0.03       # down 3% on the day -> flatten & stop till tomorrow
+  max_drawdown_halt: 0.10     # drawdown from peak > 10% -> go to cash & re-strategize
+  biweekly_lock_buffer: 0.004 # once a 2-wk block is up >0.4%, defend that gain
+
+# --- The agentic meta-controller (the self-adjusting brain) ---------------
+agent:
+  lookback_days: 150          # history pulled for scoring
+  score_window: 20            # rolling trading-day window for "is it working?"
+  min_strategy_weight: 0.0    # strategies scoring badly can be cut to zero
+  underperform_days: 15       # window for the live-PnL feedback check
+  underperform_drawdown: 0.03 # only de-risk if the book is down > this over that window
+  use_llm_analyst: false      # optional Claude advisory layer (needs ANTHROPIC_API_KEY)
+
+# --- Strategy library: the agent rotates capital between these ------------
+strategies:
+  momentum:                   # trend / relative-strength (risk-on engine)
+    enabled: true
+    fast: 20
+    slow: 100
+    top_n: 4
+  mean_reversion:             # buy-the-dip on quality (chop/range engine)
+    enabled: true
+    rsi_period: 2
+    rsi_buy: 12
+    sma_filter: 200
+    top_n: 4
+  defensive:                  # capital preservation (risk-off engine)
+    enabled: true
+
+data:
+  timeframe: 1Day
+  history_bars: 320

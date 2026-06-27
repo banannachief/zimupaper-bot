@@ -1,0 +1,67 @@
+# ======================================================================
+# GROWTH profile — more aggressive than the default preservation config.
+# Use with:  python backtest.py --config config.growth.yaml --source yfinance
+# or copy over config.yaml to run it live. Bigger upside, BIGGER swings.
+# This still cannot guarantee any return, let alone 10%/week.
+# ======================================================================
+
+mode: paper
+broker: alpaca
+account_label: Zimupaper
+
+universe:
+  - SPY
+  - QQQ
+  - DIA
+  - IWM
+  - XLK
+  - XLF
+  - XLV
+  - XLE
+  - XLY
+  - XLP
+  - GLD
+  - TLT
+benchmark: SPY
+cash_asset: BIL
+
+targets:
+  weekly_gain: 0.03          # aim higher before banking the week
+  biweekly_preserve: true
+
+risk:
+  risk_per_trade: 0.025      # 2.5% risk/trade (was 1%)
+  max_weight_per_name: 0.35  # allow bigger single-name bets
+  max_gross_exposure: 1.00
+  stop_loss_atr_mult: 3.0    # wider stops -> fewer whipsaws
+  rebalance_band: 0.03
+  daily_loss_halt: 0.05      # tolerate more intraday noise
+  max_drawdown_halt: 0.25    # ride deeper drawdowns before going flat
+  biweekly_lock_buffer: 0.006
+
+agent:
+  lookback_days: 150
+  score_window: 20
+  min_strategy_weight: 0.0
+  underperform_days: 15
+  underperform_drawdown: 0.06   # de-risk far less often -> stay invested
+  use_llm_analyst: false
+
+strategies:
+  momentum:
+    enabled: true
+    fast: 20
+    slow: 100
+    top_n: 3                  # more concentrated in the strongest trends
+  mean_reversion:
+    enabled: true
+    rsi_period: 2
+    rsi_buy: 15
+    sma_filter: 200
+    top_n: 3
+  defensive:
+    enabled: true
+
+data:
+  timeframe: 1Day
+  history_bars: 320

@@ -1,0 +1,2 @@
+# State (equity curve, trades, decisions) is written here as state.json and
+# committed back to the repo by the GitHub Actions workflow each run.

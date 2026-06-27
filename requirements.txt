@@ -1,0 +1,12 @@
+# Core (lightweight — no heavy broker SDK; we talk to Alpaca over plain REST)
+numpy>=1.26
+pandas>=2.1
+requests>=2.31
+PyYAML>=6.0
+python-dotenv>=1.0
+
+# Backtest data source (optional; bot falls back to synthetic data if absent)
+yfinance>=0.2.40
+
+# Tests
+pytest>=8.0
