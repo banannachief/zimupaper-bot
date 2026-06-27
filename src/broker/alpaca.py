@@ -18,6 +18,7 @@ import requests
 from .base import Account, Broker, OrderResult, Position
 
 DATA_URL = "https://data.alpaca.markets"
+_RETRY_STATUS = {429, 500, 502, 503, 504}
 
 
 class AlpacaBroker(Broker):
@@ -31,18 +32,37 @@ class AlpacaBroker(Broker):
         }
 
     # ---------------------------------------------------------------- http
+    def _request(self, method: str, url: str, *, params=None, json=None,
+                 retries: int = 3) -> requests.Response:
+        last = None
+        for attempt in range(retries):
+            try:
+                r = requests.request(method, url, headers=self._headers,
+                                     params=params, json=json, timeout=self.timeout)
+                if r.status_code in _RETRY_STATUS:
+                    last = requests.HTTPError(f"{r.status_code}", response=r)
+                    time.sleep(1.5 * (attempt + 1))
+                    continue
+                return r
+            except (requests.ConnectionError, requests.Timeout) as e:
+                last = e
+                time.sleep(1.5 * (attempt + 1))
+        if last:
+            raise last
+        raise RuntimeError("request failed")
+
     def _get(self, url: str, params: dict | None = None) -> Any:
-        r = requests.get(url, headers=self._headers, params=params, timeout=self.timeout)
+        r = self._request("GET", url, params=params)
         r.raise_for_status()
         return r.json()
 
     def _post(self, url: str, payload: dict) -> Any:
-        r = requests.post(url, headers=self._headers, json=payload, timeout=self.timeout)
+        r = self._request("POST", url, json=payload)
         r.raise_for_status()
         return r.json()
 
     def _delete(self, url: str) -> Any:
-        r = requests.delete(url, headers=self._headers, timeout=self.timeout)
+        r = self._request("DELETE", url)
         if r.status_code not in (200, 207):
             r.raise_for_status()
         return r.json() if r.text else {}

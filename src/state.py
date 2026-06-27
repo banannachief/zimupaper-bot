@@ -65,6 +65,12 @@ class State:
     # telegram interaction
     tg_offset: int = 0               # last processed Telegram update_id
 
+    # decision cadence (re-decide allocation periodically, not every cycle)
+    last_decision_date: str = ""
+    last_target_weights: dict = field(default_factory=dict)
+    last_regime: str = ""
+    last_strategy_weights: dict = field(default_factory=dict)
+
     # per-symbol protective stop prices
     stops: dict[str, float] = field(default_factory=dict)
 

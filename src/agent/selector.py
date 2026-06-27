@@ -41,9 +41,12 @@ def shadow_returns(strategy, history: dict[str, pd.DataFrame], universe: list[st
     if n < window + 2:
         return pd.Series(dtype=float)
 
-    # Precompute per-symbol arrays + index for fast lookup.
-    closes = {s: history[s]["close"] for s in symbols
+    # Precompute raw numpy close arrays + index objects ONCE. The hot loop then
+    # slices numpy (cheap, no pandas __finalize__/index-engine overhead) and
+    # wraps in a RangeIndex Series — strategies only need close values in order.
+    closes = {s: history[s]["close"].to_numpy() for s in symbols
               if s in history and not history[s].empty}
+    idxs = {s: history[s].index for s in closes}
 
     rets: list[float] = []
     out_dates = []
@@ -51,26 +54,25 @@ def shadow_returns(strategy, history: dict[str, pd.DataFrame], universe: list[st
     for i in range(start, n):
         d, d_prev = index[i], index[i - 1]
         sliced = {}
-        for s, _ in closes.items():
-            df = history[s]
-            pos = df.index.searchsorted(d_prev, side="right")
+        for s in closes:
+            pos = idxs[s].searchsorted(d_prev, side="right")
             if pos >= 2:
-                sliced[s] = df.iloc[max(0, pos - need):pos]
+                sliced[s] = pd.Series(closes[s][max(0, pos - need):pos])
         try:
             weights = strategy.target_weights(sliced, universe, context)
         except Exception:
             weights = {}
         day_ret = 0.0
         for sym, w in weights.items():
-            c = closes.get(sym)
-            if c is None:
+            ip = idxs.get(sym)
+            if ip is None:
                 continue
-            try:
-                p0, p1 = c.get(d_prev), c.get(d)
-            except Exception:
-                p0 = p1 = None
-            if p0 and p1 and p0 > 0:
-                day_ret += w * (p1 / p0 - 1.0)
+            pj = ip.searchsorted(d, side="right") - 1
+            pk = ip.searchsorted(d_prev, side="right") - 1
+            if pj >= 0 and pk >= 0 and ip[pj] == d and ip[pk] == d_prev:
+                p0 = closes[sym][pk]
+                if p0 > 0:
+                    day_ret += w * (closes[sym][pj] / p0 - 1.0)
         rets.append(day_ret)
         out_dates.append(d)
     return pd.Series(rets, index=pd.DatetimeIndex(out_dates), dtype=float)
@@ -94,7 +96,7 @@ def score_returns(rets: pd.Series) -> float:
 def allocate(scores: dict[str, float], risk_budget: float,
              enabled: list[str], min_weight: float = 0.0) -> dict[str, float]:
     """Turn strategy scores + a regime risk budget into strategy weights."""
-    risk_names = [n for n in RISK_ON if n in enabled]
+    risk_names = [n for n in enabled if n != DEFENSIVE]
     has_def = DEFENSIVE in enabled
 
     pos = {n: max(0.0, scores.get(n, 0.0)) for n in risk_names}

@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from ..indicators import realized_vol, sma, slope
+from ..indicators import realized_vol_last, sma_last, slope_last
 
 HIGH_VOL = 0.28      # annualized realized vol above this = stress
 SLOPE_FLAT = 0.0002  # per-bar normalized slope magnitude considered "flat"
@@ -34,10 +34,10 @@ def detect_regime(bench_close: pd.Series | None) -> Regime:
 
     close = bench_close.dropna()
     last = close.iloc[-1]
-    ma200 = sma(close, 200).iloc[-1]
-    ma50 = sma(close, 50).iloc[-1]
-    vol = float(realized_vol(close, 20).iloc[-1] or 0.0)
-    trend = float(slope(close, 50).iloc[-1] or 0.0)
+    ma200 = sma_last(close, 200)
+    ma50 = sma_last(close, 50)
+    vol = float(realized_vol_last(close, 20) or 0.0)
+    trend = float(slope_last(close, 50) or 0.0)
     above = bool(last > ma200)
 
     if vol >= HIGH_VOL:

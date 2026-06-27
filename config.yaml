@@ -36,7 +36,10 @@ risk:
   max_weight_per_name: 0.20   # never more than 20% of equity in one ticker
   max_gross_exposure: 1.00    # fully invested at most — NO leverage
   stop_loss_atr_mult: 2.5     # hard stop = entry - 2.5 * ATR(14)
-  rebalance_band: 0.02        # only adjust a holding when it drifts > 2% of equity (cuts churn)
+  rebalance_band: 0.02        # only adjust a holding when it drifts > 2% of equity.
+                              # NOTE: aggressive churn-tuning (band 0.05 + monthly
+                              # cadence) looked best on recent data but DEGRADED the
+                              # true-OOS early period — kept robust defaults instead.
   daily_loss_halt: 0.03       # down 3% on the day -> flatten & stop till tomorrow
   max_drawdown_halt: 0.10     # drawdown from peak > 10% -> go to cash & re-strategize
   biweekly_lock_buffer: 0.004 # once a 2-wk block is up >0.4%, defend that gain
@@ -46,25 +49,42 @@ agent:
   lookback_days: 150          # history pulled for scoring
   score_window: 20            # rolling trading-day window for "is it working?"
   min_strategy_weight: 0.0    # strategies scoring badly can be cut to zero
+  decision_cadence_days: 5    # re-decide allocation ~weekly (stops/halts stay daily).
+                              # Robust default — generalized best across BOTH the early
+                              # and recent test periods (longer cadence overfit recent).
   underperform_days: 15       # window for the live-PnL feedback check
   underperform_drawdown: 0.03 # only de-risk if the book is down > this over that window
   use_llm_analyst: false      # optional Claude advisory layer (needs ANTHROPIC_API_KEY)
 
 # --- Strategy library: the agent rotates capital between these ------------
 strategies:
-  momentum:                   # trend / relative-strength (risk-on engine)
+  # --- Defaults chosen by out-of-sample validation (see OPTIMIZATION_REPORT.md).
+  # `trend` had the best OOS Sharpe (1.10), lowest drawdown, and fewest losing
+  # 2-week blocks. momentum/mean_reversion/dual_momentum underperformed or
+  # overfit out-of-sample, so they're off by default (still available to enable).
+  trend:                      # vol-weighted trend-following — OOS WINNER
     enabled: true
-    fast: 20
-    slow: 100
-    top_n: 4
-  mean_reversion:             # buy-the-dip on quality (chop/range engine)
+    fast: 50
+    slow: 200
+    vol_window: 20
+    max_names: 8
+  defensive:                  # capital preservation (risk-off engine)
+    enabled: true
+  mean_reversion:             # buy-the-dip on quality — complements trend (best OOS combo)
     enabled: true
     rsi_period: 2
     rsi_buy: 12
     sma_filter: 200
     top_n: 4
-  defensive:                  # capital preservation (risk-off engine)
-    enabled: true
+  momentum:                   # trend / relative-strength (off: weaker OOS than `trend`)
+    enabled: false
+    fast: 20
+    slow: 100
+    top_n: 4
+  dual_momentum:              # relative+absolute momentum (off: overfit, failed OOS)
+    enabled: false
+    lookback: 120
+    top_n: 4
 
 data:
   timeframe: 1Day

@@ -18,4 +18,5 @@ Thumbs.db
 
 # Local scratch
 scratch/
+scratch_*.out
 *.log

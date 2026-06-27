@@ -155,6 +155,51 @@ def walk_forward(base: Config, history: dict, grid: dict, *,
     return {"oos_aggregate": agg, "windows": detail, "n_windows": len(windows)}
 
 
+def walk_forward_candidates(base: Config, history: dict,
+                            candidates: dict[str, dict], *,
+                            train_years: float = 4.0, test_years: float = 1.0,
+                            verbose: bool = True) -> dict:
+    """Like walk_forward, but the choice each window is *which candidate config*
+    (strategy combo), picked by train-window objective, scored OOS on the next.
+    Answers: does picking the best-looking strategy set generalize forward?
+    """
+    timeline = _timeline(history, base.benchmark)
+    if len(timeline) < 50:
+        return {"error": "not enough history"}
+    first, last = timeline[0], timeline[-1]
+    train_td = pd.Timedelta(days=int(train_years * 365.25))
+    test_td = pd.Timedelta(days=int(test_years * 365.25))
+
+    windows = []
+    ts = first + train_td
+    while ts < last:
+        te = min(ts + test_td, last)
+        windows.append((ts - train_td, ts, te))
+        ts = te + pd.Timedelta(days=1)
+
+    oos_rets, detail, picks = [], [], []
+    for (tr_s, te_s, te_e) in windows:
+        scored = []
+        for name, ov in candidates.items():
+            m = window_metrics(base, ov, history, tr_s, te_s)
+            scored.append((name, objective(m)))
+        scored.sort(key=lambda x: x[1], reverse=True)
+        best_name = scored[0][0]
+        picks.append(best_name)
+        rets = window_returns(base, candidates[best_name], history, te_s, te_e)
+        m = _metrics_from_returns(rets, base.weekly_gain)
+        oos_rets.append(rets)
+        detail.append({"test": f"{te_s.date()}..{te_e.date()}",
+                       "picked": best_name, "oos": m})
+        if verbose:
+            print(f"  {te_s.date()}..{te_e.date()} picked={best_name:<18} "
+                  f"oos_ret={m.get('oos_total_return')} sharpe={m.get('oos_sharpe')}")
+
+    stitched = pd.concat(oos_rets).sort_index() if oos_rets else pd.Series(dtype=float)
+    return {"oos_aggregate": _metrics_from_returns(stitched, base.weekly_gain),
+            "windows": detail, "picks": picks, "n_windows": len(windows)}
+
+
 def holdout_eval(base: Config, history: dict, grid: dict, *,
                  holdout_years: float = 2.0) -> dict:
     """Single split: tune on everything before the holdout, report on the holdout."""

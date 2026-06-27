@@ -26,11 +26,16 @@ class Strategy(ABC):
 
     # -- shared helpers ----------------------------------------------------
     @staticmethod
-    def _close(data: dict[str, pd.DataFrame], sym: str) -> pd.Series | None:
-        df = data.get(sym)
-        if df is None or df.empty or "close" not in df:
+    def _close(data, sym: str) -> pd.Series | None:
+        obj = data.get(sym)
+        if obj is None:
             return None
-        return df["close"].dropna()
+        if isinstance(obj, pd.Series):          # lightweight shadow-eval path
+            s = obj.dropna()
+            return s if len(s) else None
+        if obj.empty or "close" not in obj:     # full OHLC DataFrame (live path)
+            return None
+        return obj["close"].dropna()
 
     @staticmethod
     def _equal_weight(symbols: list[str], slots: int) -> dict[str, float]:

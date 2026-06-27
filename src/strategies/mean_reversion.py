@@ -6,7 +6,7 @@ weakness" pattern: never catch a falling knife in a downtrend.
 """
 from __future__ import annotations
 
-from ..indicators import rsi, sma
+from ..indicators import rsi_last, sma_last
 from .base import Strategy
 
 
@@ -24,8 +24,8 @@ class MeanReversionStrategy(Strategy):
             close = self._close(data, sym)
             if close is None or len(close) < sma_filter + 1:
                 continue
-            trend = sma(close, sma_filter).iloc[-1]
-            r = rsi(close, rsi_period).iloc[-1]
+            trend = sma_last(close, sma_filter)
+            r = rsi_last(close, rsi_period)
             last = close.iloc[-1]
             if last > trend and r <= rsi_buy:        # uptrend + oversold dip
                 scored.append((sym, r))

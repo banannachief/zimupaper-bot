@@ -37,7 +37,8 @@ def test_defensive_holds_cash():
 def test_build_strategies_from_config():
     from src.config import Config
     strats = build_strategies(Config.load())
-    assert "momentum" in strats and "defensive" in strats
+    # default set is the OOS-validated winner: trend + mean_reversion + defensive
+    assert "trend" in strats and "mean_reversion" in strats and "defensive" in strats
 
 
 def test_regime_detection_shapes():

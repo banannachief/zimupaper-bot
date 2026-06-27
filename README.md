@@ -26,23 +26,31 @@ A free, cloud-hosted US-equity/ETF trading bot that:
 
 ## What the backtest actually shows (real data, honest)
 
-3 years of real market data (2023-05 → 2026-06), default "preservation" config:
+The strategy was chosen by **out-of-sample** validation over ~12 years of real data
+(see `OPTIMIZATION_REPORT.md`). Default = `trend + mean_reversion + defensive`,
+picked because it generalized best on data it was *not* tuned on.
 
-| Metric | Result |
-|---|---|
-| Total return (3 yr) | **+7.6%** (~+2.4%/yr) |
-| Benchmark SPY (buy & hold) | +84.3% |
-| Max drawdown | **−4.4%** (very small) |
-| % weeks that hit the +1% target | 5.5% |
-| % 2-week blocks that closed negative | ~41% |
+**Full 11-year backtest** (the honest, un-cherry-picked picture):
 
-**Read this honestly:** the bot is tuned for *capital preservation* — tiny drawdowns,
-small steady participation — so it **lags a strong bull market badly**, and the
-"no loss every 2 weeks" aim is an *aspiration the risk rules push toward, not a
-guarantee they achieve* (~41% of 2-week blocks still closed slightly red in backtest).
-A bot can chase the market's big upside **or** keep drawdowns tiny — not both. You decide
-the trade-off (see *Preservation vs growth* below). Past results never predict the future;
-your real numbers will appear on the dashboard once it's live on Alpaca paper.
+| Metric | This bot | SPY buy & hold |
+|---|---|---|
+| Return (11 yr) | +41% (**~+3.2%/yr**) | +317% (~+13%/yr) |
+| Sharpe (risk-adjusted) | **0.82** | ~0.6 |
+| Max drawdown | **−6.4%** | ~−34% |
+| % 2-week blocks negative | ~38% | — |
+
+**Read this honestly:**
+- This is a **capital-preserver, not a money printer.** ~+3%/yr with a tiny −6.4%
+  max drawdown and a *better Sharpe than SPY* — but it **lags buy-and-hold badly**
+  in bull markets (it sits in cash when trends weaken). That's the trade-off you
+  asked for (minimize losses), made explicit.
+- It is **positive and consistent out-of-sample** (Sharpe 0.62 on 2015–2023 which it
+  was never tuned on, 1.28 on 2023–2026) — the optimization turned a *losing*
+  baseline into a modestly profitable one. Honest, validated, not curve-fit.
+- "No loss every 2 weeks" is **not** achieved (~38% of fortnights red) and cannot be
+  guaranteed by anything. The weekly +1% target is rarely hit (~5% of weeks).
+- These are *backtest* numbers. The future will differ. Your real numbers appear on
+  the dashboard once it runs on Alpaca paper.
 
 ---
 
@@ -172,6 +180,13 @@ python backtest.py --source synthetic               # offline, no network
 # Dry-run one cycle with no broker keys (offline simulator)
 python run.py --broker sim
 
+# Research / optimization (all offline once the cache is built)
+python tools/build_data_cache.py            # download ~12y real data -> data/cache/
+python backtest.py --source cache --years 12
+python tools/compare_strategies.py          # in-sample vs out-of-sample per strategy
+python optimize.py --mode holdout           # tune-on-past, test-on-held-out
+python tools/ml_research.py                 # the (rejected) ML experiment
+
 # One real paper cycle locally (needs a .env — copy .env.example to .env first)
 python run.py
 
@@ -212,18 +227,23 @@ code changes needed; edit and the next run picks it up. Key knobs:
 ## Project layout
 
 ```
-config.yaml            # all behaviour/risk settings
-run.py                 # cron entrypoint (one cycle)
+config.yaml            # all behaviour/risk settings (config.growth.yaml = aggressive preset)
+run.py                 # cron entrypoint (one cycle; --check validates setup)
 backtest.py            # historical backtest CLI
+optimize.py            # out-of-sample / walk-forward optimizer
+OPTIMIZATION_REPORT.md # honest writeup of what was tried & validated
 src/
   broker/              # Alpaca REST adapter + offline simulator
-  strategies/          # momentum, mean-reversion, defensive
+  strategies/          # trend, mean-reversion, defensive (+ momentum, dual_momentum off)
   agent/               # regime detection, performance-driven selector, controller
   risk/                # sizing, stops, halts, weekly/2-week rules
   engine.py            # one full decision/trade cycle (used live AND by backtest)
-  backtester.py        # vectorized walk-forward over the same engine
+  backtester.py        # day-by-day backtest over the same engine
+  evaluation.py        # walk-forward / holdout OOS harness
   telegram_bot.py      # optional Telegram interface (status / pause / resume)
   state.py             # persistent JSON state (equity, trades, decisions)
+tools/                 # build_data_cache, compare_strategies, ml_research, validate_final
+data/cache/            # cached real price history (parquet)
 docs/                  # the GitHub Pages dashboard (index.html + generated data.json)
 .github/workflows/     # the free scheduled-cron workflow
 tests/                 # pytest suite

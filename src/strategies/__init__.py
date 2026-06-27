@@ -3,12 +3,16 @@ from __future__ import annotations
 
 from .base import Strategy
 from .defensive import DefensiveStrategy
+from .dual_momentum import DualMomentumStrategy
 from .mean_reversion import MeanReversionStrategy
 from .momentum import MomentumStrategy
+from .trend import TrendStrategy
 
 REGISTRY = {
     "momentum": MomentumStrategy,
     "mean_reversion": MeanReversionStrategy,
+    "dual_momentum": DualMomentumStrategy,
+    "trend": TrendStrategy,
     "defensive": DefensiveStrategy,
 }
 

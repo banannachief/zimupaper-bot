@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from ..indicators import sma
+from ..indicators import sma_last
 from .base import Strategy
 
 
@@ -25,8 +25,8 @@ class MomentumStrategy(Strategy):
             close = self._close(data, sym)
             if close is None or len(close) < slow + 1:
                 continue
-            slow_ma = sma(close, slow).iloc[-1]
-            fast_ma = sma(close, fast).iloc[-1]
+            slow_ma = sma_last(close, slow)
+            fast_ma = sma_last(close, fast)
             last = close.iloc[-1]
             mom = last / close.iloc[-slow] - 1.0          # total return over slow window
             # trend filter: above long MA and fast above slow (confirmed uptrend)

@@ -87,6 +87,62 @@ def max_drawdown(equity: pd.Series) -> float:
     return float(dd.min())
 
 
+# --- fast "last value only" helpers (hot path: backtests call these a lot) ---
+# Each returns the same number as <indicator>(series).iloc[-1] but in O(window)
+# numpy instead of building a full pandas rolling object over the whole series.
+
+def sma_last(close: pd.Series, w: int) -> float:
+    a = close.to_numpy()
+    return float(a[-w:].mean()) if a.shape[0] >= w else float("nan")
+
+
+def realized_vol_last(close: pd.Series, window: int = 20, annualize: bool = True) -> float:
+    a = close.to_numpy()
+    if a.shape[0] < window + 1:
+        return float("nan")
+    r = np.diff(np.log(a[-(window + 1):]))
+    v = float(np.std(r, ddof=1))
+    return v * np.sqrt(252.0) if annualize else v
+
+
+def _ewm_last(x: np.ndarray, alpha: float) -> float:
+    """Last value of an adjust=False EWM (matches pandas ewm seeding)."""
+    m = x[0]
+    for v in x[1:]:
+        m = alpha * v + (1 - alpha) * m
+    return float(m)
+
+
+def rsi_last(close: pd.Series, period: int = 14) -> float:
+    a = close.to_numpy()
+    need = period * 30 + 5
+    if a.shape[0] > need:
+        a = a[-need:]
+    if a.shape[0] < period + 1:
+        return float("nan")
+    d = np.diff(a)
+    gain = np.clip(d, 0, None)
+    loss = -np.clip(d, None, 0)
+    ag = _ewm_last(gain, 1.0 / period)
+    al = _ewm_last(loss, 1.0 / period)
+    if al == 0:
+        return 100.0
+    if ag == 0:
+        return 0.0
+    rs = ag / al
+    return 100.0 - 100.0 / (1.0 + rs)
+
+
+def slope_last(close: pd.Series, window: int = 20) -> float:
+    a = close.to_numpy()[-window:]
+    if a.shape[0] < window or not np.all(np.isfinite(a)):
+        return float("nan")
+    x = np.arange(window, dtype=float)
+    b = float(np.polyfit(x, a, 1)[0])
+    lvl = float(a.mean())
+    return b / lvl if lvl else 0.0
+
+
 def slope(series: pd.Series, window: int = 20) -> pd.Series:
     """Normalized linear-regression slope over a window (per-bar % drift)."""
     def _slope(vals: np.ndarray) -> float:

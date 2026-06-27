@@ -16,6 +16,15 @@ from .risk.manager import RiskManager
 from .strategies import build_strategies
 
 
+def _data_too_thin(data: dict[str, pd.DataFrame], config, bench_df) -> bool:
+    """True if the feed looks broken — guard against liquidating on an outage."""
+    if bench_df is None or len(bench_df) < 50:
+        return True
+    usable = sum(1 for s in config.universe
+                 if data.get(s) is not None and len(data.get(s)) >= 50)
+    return usable < max(2, len(config.universe) // 2)
+
+
 def _latest_prices(data: dict[str, pd.DataFrame]) -> dict[str, float]:
     out = {}
     for sym, df in data.items():
@@ -77,6 +86,12 @@ def run_cycle(broker: Broker, config, state, now: datetime | None = None, *,
     elif decision.action == "hold" or not is_open:
         state.add_note(f"{now.date()}: HOLD — "
                        f"{decision.reason if decision.action == 'hold' else 'market closed'}")
+    elif _data_too_thin(data, config, bench_df):
+        # Safety: a broken/empty data feed must NOT trigger trading. Empty target
+        # weights would otherwise liquidate the whole book on a transient outage.
+        state.add_note(f"{now.date()}: HOLD — insufficient market data; not trading")
+        summary["action"] = "hold-nodata"
+        logs.append("insufficient data — holding")
     else:  # trade
         # 1) honour trailing stop-losses first
         breached = risk.update_stops(state, positions, data)
@@ -85,20 +100,44 @@ def run_cycle(broker: Broker, config, state, now: datetime | None = None, *,
         if breached:
             positions = broker.get_positions()
 
-        # 2) agent decides target portfolio
-        dec = controller.decide(data, state)
-        target_dollars = risk.size_targets(dec.target_weights, account, data,
+        # 2) agent decides target portfolio — but only re-decide on a cadence
+        #    (e.g. weekly). Between decisions we reuse the last allocation; the
+        #    risk layer + rebalance band still run daily. Cuts churn and compute.
+        cadence = int(config.agent.get("decision_cadence_days", 5))
+        reuse = False
+        if (state.last_decision_date and state.last_target_weights
+                and not state.restrategize_needed):
+            try:
+                last = datetime.fromisoformat(state.last_decision_date)
+                reuse = (now - last).days < cadence
+            except Exception:
+                reuse = False
+
+        if reuse:
+            target_weights = dict(state.last_target_weights)
+            regime_label = state.last_regime or "n/a"
+            strat_weights = state.last_strategy_weights or {}
+        else:
+            dec = controller.decide(data, state)
+            target_weights = dec.target_weights
+            regime_label = dec.regime.label
+            strat_weights = dec.strategy_weights
+            state.last_decision_date = now.isoformat()
+            state.last_target_weights = target_weights
+            state.last_regime = regime_label
+            state.last_strategy_weights = strat_weights
+            state.log_decision(now, regime_label, strat_weights, target_weights,
+                               note=f"{dec.note}; risk_scale={decision.risk_scale:.2f}")
+
+        target_dollars = risk.size_targets(target_weights, account, data,
                                             decision.risk_scale)
         prices = _latest_prices(data)
         orders = risk.make_orders(target_dollars, positions, prices, account.equity)
         for o in orders:
             _execute(broker, o, state, now, logs)
 
-        state.log_decision(now, dec.regime.label, dec.strategy_weights,
-                           dec.target_weights,
-                           note=f"{dec.note}; risk_scale={decision.risk_scale:.2f}")
-        summary["regime"] = dec.regime.label
-        summary["strategies"] = {k: round(v, 3) for k, v in dec.strategy_weights.items()}
+        summary["regime"] = regime_label
+        summary["strategies"] = {k: round(v, 3) for k, v in strat_weights.items()}
 
     # refresh snapshot for the dashboard
     pos = broker.get_positions()
