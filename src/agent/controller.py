@@ -18,6 +18,7 @@ import pandas as pd
 
 from . import selector
 from .regime import Regime, detect_regime
+from .sentiment import apply_tilt
 
 
 @dataclass
@@ -35,7 +36,8 @@ class Controller:
         self.config = config
         self.agent_cfg = config.agent
 
-    def decide(self, history: dict[str, pd.DataFrame], state) -> Decision:
+    def decide(self, history: dict[str, pd.DataFrame], state,
+               sentiment: dict | None = None) -> Decision:
         cfg = self.config
         context = {"cash_asset": cfg.cash_asset, "benchmark": cfg.benchmark}
         universe = cfg.universe
@@ -86,6 +88,15 @@ class Controller:
             sw = self.strategies[name].target_weights(history, universe, context)
             for sym, w in sw.items():
                 target[sym] = target.get(sym, 0.0) + alloc * w
+
+        # --- optional DeepSeek sentiment tilt (off by default; guard-railed) ---
+        if sentiment:
+            strength = float(self.agent_cfg.get("sentiment_strength", 0.3))
+            before = dict(target)
+            target = apply_tilt(target, sentiment, strength, cfg.cash_asset)
+            n_sig = sum(1 for s in sentiment if abs(sentiment.get(s, 0)) > 0.1)
+            if target != before:
+                notes.append(f"sentiment tilt ({n_sig} signals)")
 
         # --- optional LLM analyst (off by default; advisory only) ---
         if self.agent_cfg.get("use_llm_analyst", False):

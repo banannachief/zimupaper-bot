@@ -31,6 +31,7 @@ class Secrets:
     alpaca_secret: str = ""
     alpaca_base_url: str = "https://paper-api.alpaca.markets"
     anthropic_key: str = ""
+    deepseek_key: str = ""
     discord_webhook: str = ""
     telegram_token: str = ""
     telegram_chat: str = ""
@@ -49,6 +50,7 @@ class Secrets:
                 "ALPACA_BASE_URL", "https://paper-api.alpaca.markets"
             ).strip(),
             anthropic_key=os.getenv("ANTHROPIC_API_KEY", "").strip(),
+            deepseek_key=os.getenv("DEEPSEEK_API_KEY", "").strip(),
             discord_webhook=os.getenv("DISCORD_WEBHOOK_URL", "").strip(),
             telegram_token=os.getenv("TELEGRAM_BOT_TOKEN", "").strip(),
             telegram_chat=os.getenv("TELEGRAM_CHAT_ID", "").strip(),

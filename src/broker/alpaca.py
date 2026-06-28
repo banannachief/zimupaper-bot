@@ -135,6 +135,28 @@ class AlpacaBroker(Broker):
             frames[sym] = df[["open", "high", "low", "close", "volume"]].tail(limit)
         return frames
 
+    # ---------------------------------------------------------------- news
+    def get_news(self, symbols: list[str], limit: int = 30) -> list[dict]:
+        """Recent headlines via Alpaca's free news API (data.alpaca.markets)."""
+        if not symbols:
+            return []
+        try:
+            data = self._get(f"{DATA_URL}/v1beta1/news", params={
+                "symbols": ",".join(symbols), "limit": min(limit, 50),
+                "sort": "desc", "include_content": "false",
+            })
+        except Exception:
+            return []
+        out = []
+        for n in data.get("news", []):
+            out.append({
+                "symbols": n.get("symbols", []),
+                "headline": n.get("headline", ""),
+                "summary": (n.get("summary") or "")[:240],
+                "created_at": n.get("created_at", ""),
+            })
+        return out
+
     # -------------------------------------------------------------- orders
     def submit_order(self, symbol: str, side: str, *, qty: float | None = None,
                      notional: float | None = None) -> OrderResult:

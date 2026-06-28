@@ -1,25 +1,31 @@
 {
-  "account_label": "Zimupaper",
-  "mode": "paper",
-  "preview": false,
+  "created_at": "2026-06-28T11:36:55.924653+00:00",
   "updated_at": "2026-06-28T11:42:16.046467+00:00",
-  "weekly_target": 0.01,
-  "summary": {
-    "starting_equity": 99992.9,
-    "equity": 99992.9,
+  "starting_equity": 99992.9,
+  "peak_equity": 99992.9,
+  "last_equity": 99992.9,
+  "week": {
+    "key": "2026-06-22",
+    "start_equity": 99992.9,
     "peak_equity": 99992.9,
-    "total_return": 0.0,
-    "weekly_return": 0.0,
-    "biweekly_return": 0.0,
-    "drawdown": 0.0,
-    "week_start_equity": 99992.9,
-    "week_locked": false,
-    "biweek_start_equity": 99992.9,
-    "biweek_defending": false,
-    "drawdown_halted": false,
-    "daily_halt_date": "",
-    "restrategize_needed": false
+    "locked": false
   },
+  "biweek": {
+    "key": 1473,
+    "start_equity": 99992.9,
+    "peak_equity": 99992.9,
+    "defending": false
+  },
+  "daily_halt_date": "",
+  "drawdown_halted": false,
+  "restrategize_needed": false,
+  "manual_pause": false,
+  "tg_offset": 0,
+  "last_decision_date": "",
+  "last_target_weights": {},
+  "last_regime": "",
+  "last_strategy_weights": {},
+  "stops": {},
   "equity_curve": [
     {
       "t": "2026-06-28T11:36:55.924653+00:00",
@@ -33,14 +39,16 @@
   "benchmark_curve": [
     {
       "t": "2026-06-28T11:36:55.924653+00:00",
-      "value": 99992.9
+      "value": 729.35
     },
     {
       "t": "2026-06-28T11:42:16.046467+00:00",
-      "value": 99992.9
+      "value": 729.35
     }
   ],
-  "positions": [
+  "trades": [],
+  "decisions": [],
+  "last_positions": [
     {
       "symbol": "FOXA",
       "qty": 1.5026,
@@ -63,25 +71,8 @@
       "stop": 0.0
     }
   ],
-  "trades": [],
-  "decisions": [],
   "notes": [
     "2026-06-28: HOLD \u2014 market closed",
     "2026-06-28: HOLD \u2014 market closed"
-  ],
-  "universe": [
-    "SPY",
-    "QQQ",
-    "DIA",
-    "IWM",
-    "XLK",
-    "XLF",
-    "XLV",
-    "XLE",
-    "XLY",
-    "XLP",
-    "GLD",
-    "TLT"
-  ],
-  "benchmark": "SPY"
+  ]
 }

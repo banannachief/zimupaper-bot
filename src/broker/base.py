@@ -65,6 +65,10 @@ class Broker(ABC):
     @abstractmethod
     def close_position(self, symbol: str) -> OrderResult: ...
 
+    def get_news(self, symbols: list[str], limit: int = 30) -> list[dict]:
+        """Recent news headlines for the symbols. Default: none (override in Alpaca)."""
+        return []
+
     def close_all(self) -> list[OrderResult]:
         results = []
         for sym in list(self.get_positions().keys()):

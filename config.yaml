@@ -55,6 +55,9 @@ agent:
   underperform_days: 15       # window for the live-PnL feedback check
   underperform_drawdown: 0.03 # only de-risk if the book is down > this over that window
   use_llm_analyst: false      # optional Claude advisory layer (needs ANTHROPIC_API_KEY)
+  use_sentiment: false        # optional DeepSeek news-sentiment tilt (needs DEEPSEEK_API_KEY)
+                              # EXPERIMENTAL & UNPROVEN — validate on paper before trusting it
+  sentiment_strength: 0.3     # max tilt from sentiment (0 = off, higher = more aggressive)
 
 # --- Strategy library: the agent rotates capital between these ------------
 strategies:

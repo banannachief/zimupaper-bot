@@ -84,6 +84,8 @@ def run_cycle(broker: Broker, config, state, now: datetime | None = None, *,
         state.add_note(f"{now.date()}: LIQUIDATE — {decision.reason}")
         logs.append(f"liquidate: {decision.reason}")
     elif decision.action == "hold" or not is_open:
+        summary["action"] = decision.action if decision.action == "hold" else "hold-market-closed"
+        summary["reason"] = decision.reason if decision.action == "hold" else "market closed"
         state.add_note(f"{now.date()}: HOLD — "
                        f"{decision.reason if decision.action == 'hold' else 'market closed'}")
     elif _data_too_thin(data, config, bench_df):
@@ -118,7 +120,16 @@ def run_cycle(broker: Broker, config, state, now: datetime | None = None, *,
             regime_label = state.last_regime or "n/a"
             strat_weights = state.last_strategy_weights or {}
         else:
-            dec = controller.decide(data, state)
+            # optional DeepSeek sentiment (only on a real decision, not every cycle)
+            sentiment = {}
+            if config.agent.get("use_sentiment", False):
+                try:
+                    from .agent.sentiment import analyze
+                    news = broker.get_news(config.universe)
+                    sentiment = analyze(news, config.universe)
+                except Exception as e:
+                    logs.append(f"sentiment skipped: {type(e).__name__}")
+            dec = controller.decide(data, state, sentiment=sentiment)
             target_weights = dec.target_weights
             regime_label = dec.regime.label
             strat_weights = dec.strategy_weights
