@@ -22,7 +22,8 @@ def _downsample(rows: list, max_points: int = 750) -> list:
     return [rows[int(i * step)] for i in range(max_points)] + [rows[-1]]
 
 
-def render_dashboard(state, config, path: Path | None = None) -> Path:
+def render_dashboard(state, config, path: Path | None = None,
+                     preview: bool = False) -> Path:
     DASH_DIR.mkdir(parents=True, exist_ok=True)
     out = path or (DASH_DIR / "data.json")
 
@@ -42,6 +43,7 @@ def render_dashboard(state, config, path: Path | None = None) -> Path:
     data = {
         "account_label": config.account_label,
         "mode": config.mode,
+        "preview": preview,
         "updated_at": state.updated_at,
         "weekly_target": config.weekly_gain,
         "summary": {

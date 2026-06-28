@@ -74,6 +74,14 @@
     <div id="modeBadge"></div>
   </header>
 
+  <div id="previewBanner" style="display:none;background:rgba(59,130,246,.12);
+    border:1px solid rgba(59,130,246,.35);color:#9cc4ff;border-radius:10px;
+    padding:10px 14px;font-size:12.5px;margin-bottom:14px">
+    🔎 <b>Backtest preview.</b> This shows the strategy's real ~11-year historical
+    results, not live trading. Your first live run on Alpaca paper replaces this with
+    your actual account data. Past results never predict the future.
+  </div>
+
   <div class="disclaimer" id="disclaimer">
     ⚠️ <b>Paper trading.</b> The weekly target is an aspiration the bot stops at when reached,
     not a guarantee. No algorithm can guarantee positive returns. Nothing here is financial advice.
@@ -143,8 +151,9 @@ function render(d){
     "Last updated: " + (d.updated_at ? new Date(d.updated_at).toLocaleString() : "—");
   const mode = (d.mode||"paper");
   document.getElementById("modeBadge").innerHTML =
-    `<span class="badge ${mode==='live'?'live':'paper'}">${mode}</span>`;
-  document.getElementById("footerMode").textContent = mode + " mode";
+    `<span class="badge ${mode==='live'?'live':'paper'}">${d.preview?'backtest':mode}</span>`;
+  document.getElementById("footerMode").textContent = (d.preview?'backtest preview':mode+" mode");
+  document.getElementById("previewBanner").style.display = d.preview ? "block" : "none";
   if(mode==='live'){
     document.getElementById("disclaimer").innerHTML =
       "🔴 <b>LIVE trading with real money.</b> Risk controls are active but losses are real. Nothing here is financial advice.";
