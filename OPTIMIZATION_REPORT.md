@@ -118,6 +118,14 @@ out-of-sample for every choice made:
   is a capital-preserver, not a money printer. Anyone telling you a free bot makes
   10%/week is lying; these are the honest numbers.
 
+**Regime dependence (from rolling walk-forward):** trend-following is inherently
+regime-dependent. Sample windows: 2018-06→2020-06 (whipsaw + COVID crash) ≈ −1%,
+Sharpe −0.13; 2020-06→2022-06 ≈ +5%, Sharpe +0.51; 2023→2026 strong (Sharpe 1.28).
+Expect flat-to-slightly-negative stretches in choppy markets and gains in
+trending ones — the full-period Sharpe 0.82 is the blend. Per-window parameter
+re-tuning did **not** beat the fixed robust defaults (it overfit each window), so
+the defaults are kept.
+
 **For more growth (accepting bigger swings):** see *Preservation vs growth* in
 README — but note the backtests show extra risk did NOT add return here, so do it
 with eyes open.

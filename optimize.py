@@ -19,9 +19,8 @@ from src.evaluation import holdout_eval, walk_forward
 # Modest parameter grid — the knobs most likely to matter, kept small so
 # walk-forward stays tractable. Structural ideas are explored separately.
 DEFAULT_GRID = {
-    "strategies.momentum.slow": [80, 120, 160],
-    "strategies.momentum.top_n": [3, 5],
-    "agent.score_window": [15, 30],
+    "strategies.trend.slow": [150, 200, 250],
+    "strategies.trend.max_names": [6, 10],
 }
 
 
