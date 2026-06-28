@@ -62,6 +62,18 @@ def test_drawdown_halt_and_recovery():
     assert d2.action in ("trade", "hold")
 
 
+def test_capital_base_caps_deployment():
+    """With capital_base set, sizing uses the smaller base, not full equity."""
+    c = Config.load()
+    c.raw["risk"]["capital_base"] = 20000
+    rm = RiskManager(c)
+    hist = synthetic_history(["AAA", "BBB", "BIL"], n=60, seed=2)
+    # account has 100k but only 20k should be deployable
+    acct = Account(equity=100_000, cash=100_000, buying_power=100_000, last_equity=100_000)
+    targets = rm.size_targets({"AAA": 0.5, "BBB": 0.5}, acct, hist, risk_scale=1.0)
+    assert sum(targets.values()) <= 20_000 + 1     # never deploy more than the base
+
+
 def test_vol_cap_limits_position():
     c = cfg()
     rm = RiskManager(c)

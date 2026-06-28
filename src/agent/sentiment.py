@@ -102,7 +102,10 @@ def apply_tilt(weights: dict[str, float], sentiment: dict[str, float],
     new_gross = sum(tilted.values())
     out = {s: w for s, w in weights.items() if s == cash_asset}
     if new_gross > 0:
-        scale = orig_gross / new_gross     # preserve total exposure (freed -> cash)
+        scale = orig_gross / new_gross     # preserve total exposure
         for s, w in tilted.items():
             out[s] = w * scale
+    else:
+        # everything was filtered out (all bearish) -> park the freed capital in cash
+        out[cash_asset] = out.get(cash_asset, 0.0) + orig_gross
     return out

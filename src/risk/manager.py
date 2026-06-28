@@ -57,6 +57,7 @@ class RiskManager:
         self.daily_halt = float(r.get("daily_loss_halt", 0.03))
         self.max_dd_halt = float(r.get("max_drawdown_halt", 0.10))
         self.biweekly_buffer = float(r.get("biweekly_lock_buffer", 0.004))
+        self.capital_base = float(r.get("capital_base", 0.0))   # 0 = use full account
         self.weekly_gain = config.weekly_gain
         self.cash_asset = config.cash_asset
 
@@ -131,8 +132,15 @@ class RiskManager:
     # ---------------------------------------------------- sizing & orders
     def size_targets(self, target_weights: dict[str, float], account,
                      data: dict[str, pd.DataFrame], risk_scale: float) -> dict[str, float]:
-        """Convert target weights -> target dollar values with all caps applied."""
+        """Convert target weights -> target dollar values with all caps applied.
+
+        If a capital_base is set (e.g. $20k), the bot only ever deploys that much
+        of your account — the rest is left untouched. All sizing is measured
+        against the smaller of capital_base and actual equity.
+        """
         equity = account.equity
+        if self.capital_base and self.capital_base > 0:
+            equity = min(equity, self.capital_base)
         out: dict[str, float] = {}
         for sym, w in target_weights.items():
             if w <= 0:

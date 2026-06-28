@@ -33,6 +33,24 @@ def _latest_prices(data: dict[str, pd.DataFrame]) -> dict[str, float]:
     return out
 
 
+def _liquidate_verified(broker: Broker, state, now, reason: str, logs: list) -> bool:
+    """Close everything and VERIFY it actually closed. Retries leftovers; warns
+    loudly if any position remains so a silent failure can't strand the book."""
+    broker.close_all()
+    remaining = broker.get_positions()
+    for sym in list(remaining):                       # retry any stragglers
+        broker.close_position(sym)
+    remaining = broker.get_positions()
+    if remaining:
+        msg = f"WARNING: liquidation incomplete, still holding {list(remaining)}"
+        logs.append(msg)
+        state.add_note(f"{now.date()}: {msg}")
+        return False
+    state.add_note(f"{now.date()}: LIQUIDATE ok — {reason}")
+    logs.append(f"liquidate ok: {reason}")
+    return True
+
+
 def _execute(broker: Broker, order, state, now, logs: list):
     if order.side == "buy":
         res = broker.submit_order(order.symbol, "buy", notional=order.notional)
@@ -42,7 +60,10 @@ def _execute(broker: Broker, order, state, now, logs: list):
         else:
             res = broker.submit_order(order.symbol, "sell", qty=order.qty)
     if res.ok:
+        # accurate qty for exits: Alpaca's close returns 0; fall back to known held qty
         qty = res.filled_qty or (order.qty or 0.0)
+        if qty == 0.0 and getattr(order, "held_qty", None):
+            qty = order.held_qty
         state.log_trade(now, order.symbol, order.side, qty, res.avg_price or 0.0,
                         order.reason)
     logs.append(f"{order.side} {order.symbol} "
@@ -80,9 +101,7 @@ def run_cycle(broker: Broker, config, state, now: datetime | None = None, *,
                "action": decision.action, "reason": decision.reason}
 
     if decision.action == "liquidate":
-        broker.close_all()
-        state.add_note(f"{now.date()}: LIQUIDATE — {decision.reason}")
-        logs.append(f"liquidate: {decision.reason}")
+        _liquidate_verified(broker, state, now, decision.reason, logs)
     elif decision.action == "hold" or not is_open:
         summary["action"] = decision.action if decision.action == "hold" else "hold-market-closed"
         summary["reason"] = decision.reason if decision.action == "hold" else "market closed"
@@ -98,7 +117,8 @@ def run_cycle(broker: Broker, config, state, now: datetime | None = None, *,
         # 1) honour trailing stop-losses first
         breached = risk.update_stops(state, positions, data)
         for sym in breached:
-            _execute(broker, _StopOrder(sym), state, now, logs)
+            held = positions[sym].qty if sym in positions else 0.0
+            _execute(broker, _StopOrder(sym, held), state, now, logs)
         if breached:
             positions = broker.get_positions()
 
@@ -173,9 +193,10 @@ def run_cycle(broker: Broker, config, state, now: datetime | None = None, *,
 
 class _StopOrder:
     """Internal marker so _execute closes a stopped-out position."""
-    def __init__(self, symbol):
+    def __init__(self, symbol, held_qty=0.0):
         self.symbol = symbol
         self.side = "sell"
         self.reason = "exit"
         self.qty = None
+        self.held_qty = held_qty          # for accurate trade-log qty on Alpaca exits
         self.notional = None

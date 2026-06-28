@@ -70,9 +70,9 @@ def shadow_returns(strategy, history: dict[str, pd.DataFrame], universe: list[st
             pj = ip.searchsorted(d, side="right") - 1
             pk = ip.searchsorted(d_prev, side="right") - 1
             if pj >= 0 and pk >= 0 and ip[pj] == d and ip[pk] == d_prev:
-                p0 = closes[sym][pk]
-                if p0 > 0:
-                    day_ret += w * (closes[sym][pj] / p0 - 1.0)
+                p0, p1 = closes[sym][pk], closes[sym][pj]
+                if p0 > 0 and np.isfinite(p0) and np.isfinite(p1):
+                    day_ret += w * (p1 / p0 - 1.0)
         rets.append(day_ret)
         out_dates.append(d)
     return pd.Series(rets, index=pd.DatetimeIndex(out_dates), dtype=float)

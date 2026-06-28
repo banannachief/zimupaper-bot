@@ -185,9 +185,17 @@ class AlpacaBroker(Broker):
             return OrderResult(symbol, side, 0.0, 0.0, ok=False, note=f"{e} {body[:160]}")
 
     def close_position(self, symbol: str) -> OrderResult:
+        # capture held qty + price first so the trade log records real values
+        held_qty, price = 0.0, 0.0
+        try:
+            p = self._get(f"{self.base}/v2/positions/{symbol}")
+            held_qty = abs(float(p.get("qty", 0.0)))
+            price = float(p.get("current_price", 0.0) or 0.0)
+        except requests.HTTPError:
+            pass
         try:
             self._delete(f"{self.base}/v2/positions/{symbol}")
-            return OrderResult(symbol, "sell", 0.0, 0.0, ok=True, note="closed")
+            return OrderResult(symbol, "sell", held_qty, price, ok=True, note="closed")
         except requests.HTTPError as e:
             return OrderResult(symbol, "sell", 0.0, 0.0, ok=False, note=str(e))
 

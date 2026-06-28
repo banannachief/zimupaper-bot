@@ -59,7 +59,9 @@ def run_backtest(config, history: dict[str, pd.DataFrame], *,
         in_window = (d >= es) if es is not None else (i >= warmup)
         if not in_window:
             continue
-        now = d.to_pydatetime().replace(tzinfo=timezone.utc)
+        pd_dt = d.to_pydatetime()
+        now = (pd_dt.replace(tzinfo=timezone.utc) if pd_dt.tzinfo is None
+               else pd_dt.astimezone(timezone.utc))
         run_cycle(broker, config, state, now=now, market_open=True,
                   render=False, persist=False)
 

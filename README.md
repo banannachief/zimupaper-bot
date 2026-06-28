@@ -180,6 +180,9 @@ python backtest.py --source synthetic               # offline, no network
 # Dry-run one cycle with no broker keys (offline simulator)
 python run.py --broker sim
 
+# View the dashboard locally in your browser (after a run populates docs/data.json)
+python -m http.server 8000 --directory docs    # then open http://127.0.0.1:8000
+
 # Research / optimization (all offline once the cache is built)
 python tools/build_data_cache.py            # download ~12y real data -> data/cache/
 python backtest.py --source cache --years 12
@@ -221,6 +224,12 @@ code changes needed; edit and the next run picks it up. Key knobs:
 - `risk.max_drawdown_halt` — go to cash & re-strategize past this drawdown (default 10%).
 - `risk.risk_per_trade` / `risk.max_weight_per_name` — position sizing caps.
 - `agent.use_llm_analyst` — optional Claude advisory layer (off by default).
+- `agent.use_sentiment` — optional **DeepSeek news-sentiment** tilt (off by default).
+  Pulls recent headlines (Alpaca news API) → DeepSeek scores each ticker's sentiment →
+  modestly tilts the allocation (capped, can't add leverage or override risk controls).
+  Needs `DEEPSEEK_API_KEY`. **Experimental & unproven** — news-sentiment alpha is noisy;
+  turn it on, run paper with it on vs off, and only keep it if the equity curve is
+  genuinely better. (Same discipline that led me to reject the ML signal.)
 
 ---
 

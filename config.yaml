@@ -32,6 +32,7 @@ targets:
 
 # --- Risk controls: these ALWAYS override the return-seeking logic --------
 risk:
+  capital_base: 20000         # only deploy this much of the account ($20k); rest untouched
   risk_per_trade: 0.01        # ~1% of equity risked per position (vol-targeted)
   max_weight_per_name: 0.20   # never more than 20% of equity in one ticker
   max_gross_exposure: 1.00    # fully invested at most — NO leverage
