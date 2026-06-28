@@ -137,6 +137,10 @@ with eyes open.
    This is the single best illustration in this whole run of why "best backtest
    number" ≠ "best strategy".
 5. **Plain momentum** — the original engine; weakest survivor OOS. Disabled.
+6. **Expanding the universe** (12 → 23 ETFs: more sectors, international, bonds,
+   commodities) — *worse* in both periods (Sharpe 0.39 vs 0.62 early, 0.92 vs 1.28
+   recent). The extras were too correlated to add real diversification. Kept the
+   curated 12.
 
 The meta-lesson, applied throughout: I optimized for *robustness across unseen
 periods*, not for the prettiest single backtest. Several changes that improved
