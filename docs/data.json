@@ -2,7 +2,7 @@
   "account_label": "Zimupaper",
   "mode": "paper",
   "preview": false,
-  "updated_at": "2026-06-28T13:14:27.711734+00:00",
+  "updated_at": "2026-06-28T21:20:51.391016+00:00",
   "weekly_target": 0.01,
   "summary": {
     "starting_equity": 99992.9,
@@ -32,6 +32,10 @@
     {
       "t": "2026-06-28T13:14:27.711734+00:00",
       "equity": 99992.9
+    },
+    {
+      "t": "2026-06-28T21:20:51.391016+00:00",
+      "equity": 99992.9
     }
   ],
   "benchmark_curve": [
@@ -45,6 +49,10 @@
     },
     {
       "t": "2026-06-28T13:14:27.711734+00:00",
+      "value": 99992.9
+    },
+    {
+      "t": "2026-06-28T21:20:51.391016+00:00",
       "value": 99992.9
     }
   ],
@@ -76,6 +84,7 @@
   "trades": [],
   "decisions": [],
   "notes": [
+    "2026-06-28: HOLD \u2014 market closed",
     "2026-06-28: HOLD \u2014 market closed",
     "2026-06-28: HOLD \u2014 market closed",
     "2026-06-28: HOLD \u2014 market closed"
