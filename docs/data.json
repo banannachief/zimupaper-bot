@@ -2,17 +2,17 @@
   "account_label": "Zimupaper",
   "mode": "paper",
   "preview": false,
-  "updated_at": "2026-06-28T21:20:51.391016+00:00",
+  "updated_at": "2026-06-29T16:40:20.683672+00:00",
   "weekly_target": 0.01,
   "summary": {
     "starting_equity": 99992.9,
-    "equity": 99992.9,
-    "peak_equity": 99992.9,
+    "equity": 99993.58,
+    "peak_equity": 99993.58,
     "total_return": 0.0,
     "weekly_return": 0.0,
     "biweekly_return": 0.0,
     "drawdown": 0.0,
-    "week_start_equity": 99992.9,
+    "week_start_equity": 99993.58,
     "week_locked": false,
     "biweek_start_equity": 99992.9,
     "biweek_defending": false,
@@ -36,6 +36,10 @@
     {
       "t": "2026-06-28T21:20:51.391016+00:00",
       "equity": 99992.9
+    },
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "equity": 99993.58
     }
   ],
   "benchmark_curve": [
@@ -54,35 +58,64 @@
     {
       "t": "2026-06-28T21:20:51.391016+00:00",
       "value": 99992.9
+    },
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "value": 101232.27
     }
   ],
   "positions": [
     {
       "symbol": "FOXA",
       "qty": 1.5026,
-      "price": 50.1,
-      "value": 75.28,
-      "stop": 0.0
-    },
-    {
-      "symbol": "MSGS",
-      "qty": 0.2577,
-      "price": 392.98,
-      "value": 101.25,
-      "stop": 0.0
-    },
-    {
-      "symbol": "PHM",
-      "qty": 0.8456,
-      "price": 137.61,
-      "value": 116.37,
+      "price": 50.12,
+      "value": 75.31,
       "stop": 0.0
     }
   ],
-  "strategy_mix": {},
+  "strategy_mix": {
+    "mean_reversion": 1.0,
+    "defensive": 0.0
+  },
   "capital_base": 20000,
-  "trades": [],
-  "decisions": [],
+  "trades": [
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "symbol": "PHM",
+      "side": "sell",
+      "qty": 0.845637,
+      "price": 137.34,
+      "reason": "exit"
+    },
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "symbol": "MSGS",
+      "side": "sell",
+      "qty": 0.25765,
+      "price": 396.33,
+      "reason": "exit"
+    },
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "symbol": "FOXA",
+      "side": "sell",
+      "qty": 1.502615,
+      "price": 50.13,
+      "reason": "exit"
+    }
+  ],
+  "decisions": [
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "regime": "bull",
+      "strategies": {
+        "mean_reversion": 1.0,
+        "defensive": 0.0
+      },
+      "weights": {},
+      "note": "regime=bull(uptrend, calm); risk_scale=1.00"
+    }
+  ],
   "notes": [
     "2026-06-28: HOLD \u2014 market closed",
     "2026-06-28: HOLD \u2014 market closed",

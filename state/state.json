@@ -1,19 +1,19 @@
 {
   "created_at": "2026-06-28T11:36:55.924653+00:00",
-  "updated_at": "2026-06-28T21:20:51.391016+00:00",
+  "updated_at": "2026-06-29T16:40:20.683672+00:00",
   "starting_equity": 99992.9,
-  "peak_equity": 99992.9,
-  "last_equity": 99992.9,
+  "peak_equity": 99993.58,
+  "last_equity": 99993.58,
   "week": {
-    "key": "2026-06-22",
-    "start_equity": 99992.9,
-    "peak_equity": 99992.9,
+    "key": "2026-06-29",
+    "start_equity": 99993.58,
+    "peak_equity": 99993.58,
     "locked": false
   },
   "biweek": {
     "key": 1473,
     "start_equity": 99992.9,
-    "peak_equity": 99992.9,
+    "peak_equity": 99993.58,
     "defending": false
   },
   "daily_halt_date": "",
@@ -21,10 +21,13 @@
   "restrategize_needed": false,
   "manual_pause": false,
   "tg_offset": 0,
-  "last_decision_date": "",
+  "last_decision_date": "2026-06-29T16:40:20.683672+00:00",
   "last_target_weights": {},
-  "last_regime": "",
-  "last_strategy_weights": {},
+  "last_regime": "bull",
+  "last_strategy_weights": {
+    "mean_reversion": 1.0,
+    "defensive": 0.0
+  },
   "stops": {},
   "equity_curve": [
     {
@@ -42,6 +45,10 @@
     {
       "t": "2026-06-28T21:20:51.391016+00:00",
       "equity": 99992.9
+    },
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "equity": 99993.58
     }
   ],
   "benchmark_curve": [
@@ -60,30 +67,56 @@
     {
       "t": "2026-06-28T21:20:51.391016+00:00",
       "value": 729.35
+    },
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "value": 738.39
     }
   ],
-  "trades": [],
-  "decisions": [],
+  "trades": [
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "symbol": "FOXA",
+      "side": "sell",
+      "qty": 1.502615,
+      "price": 50.13,
+      "reason": "exit"
+    },
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "symbol": "MSGS",
+      "side": "sell",
+      "qty": 0.25765,
+      "price": 396.33,
+      "reason": "exit"
+    },
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "symbol": "PHM",
+      "side": "sell",
+      "qty": 0.845637,
+      "price": 137.34,
+      "reason": "exit"
+    }
+  ],
+  "decisions": [
+    {
+      "t": "2026-06-29T16:40:20.683672+00:00",
+      "regime": "bull",
+      "strategies": {
+        "mean_reversion": 1.0,
+        "defensive": 0.0
+      },
+      "weights": {},
+      "note": "regime=bull(uptrend, calm); risk_scale=1.00"
+    }
+  ],
   "last_positions": [
     {
       "symbol": "FOXA",
       "qty": 1.5026,
-      "price": 50.1,
-      "value": 75.28,
-      "stop": 0.0
-    },
-    {
-      "symbol": "MSGS",
-      "qty": 0.2577,
-      "price": 392.98,
-      "value": 101.25,
-      "stop": 0.0
-    },
-    {
-      "symbol": "PHM",
-      "qty": 0.8456,
-      "price": 137.61,
-      "value": 116.37,
+      "price": 50.12,
+      "value": 75.31,
       "stop": 0.0
     }
   ],
