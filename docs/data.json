@@ -2,16 +2,16 @@
   "account_label": "Zimupaper",
   "mode": "paper",
   "preview": false,
-  "updated_at": "2026-06-29T16:40:20.683672+00:00",
+  "updated_at": "2026-06-29T19:07:28.172082+00:00",
   "weekly_target": 0.01,
   "summary": {
     "starting_equity": 99992.9,
-    "equity": 99993.58,
+    "equity": 99993.46,
     "peak_equity": 99993.58,
     "total_return": 0.0,
-    "weekly_return": 0.0,
+    "weekly_return": -0.0,
     "biweekly_return": 0.0,
-    "drawdown": 0.0,
+    "drawdown": -0.0,
     "week_start_equity": 99993.58,
     "week_locked": false,
     "biweek_start_equity": 99992.9,
@@ -40,6 +40,10 @@
     {
       "t": "2026-06-29T16:40:20.683672+00:00",
       "equity": 99993.58
+    },
+    {
+      "t": "2026-06-29T19:07:28.172082+00:00",
+      "equity": 99993.46
     }
   ],
   "benchmark_curve": [
@@ -62,17 +66,13 @@
     {
       "t": "2026-06-29T16:40:20.683672+00:00",
       "value": 101232.27
-    }
-  ],
-  "positions": [
+    },
     {
-      "symbol": "FOXA",
-      "qty": 1.5026,
-      "price": 50.12,
-      "value": 75.31,
-      "stop": 0.0
+      "t": "2026-06-29T19:07:28.172082+00:00",
+      "value": 101559.25
     }
   ],
+  "positions": [],
   "strategy_mix": {
     "mean_reversion": 1.0,
     "defensive": 0.0
@@ -105,6 +105,16 @@
     }
   ],
   "decisions": [
+    {
+      "t": "2026-06-29T19:07:28.172082+00:00",
+      "regime": "bull",
+      "strategies": {
+        "mean_reversion": 1.0,
+        "defensive": 0.0
+      },
+      "weights": {},
+      "note": "regime=bull(uptrend, calm); risk_scale=1.00"
+    },
     {
       "t": "2026-06-29T16:40:20.683672+00:00",
       "regime": "bull",
