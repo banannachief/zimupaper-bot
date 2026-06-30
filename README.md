@@ -71,6 +71,20 @@ Re-run `python backtest.py --source yfinance` after changing — it's free and i
 
 ---
 
+## Three ways to interact
+
+| Surface | What it's for | How |
+|---|---|---|
+| **Public dashboard** (read-only) | See performance, positions, the agent's decisions, **+ market-research split-screen** (TradingView charts/news for any ticker). Always-on, shareable, no laptop. | GitHub Pages URL (`docs/`) |
+| **Control panel** (interactive) | Pause/resume the bot, place manual trades, "ask the agent" why it's doing what it's doing, live account — **+ the same research split-screen**. Holds your keys locally, so it's secure. | `python control.py` → http://127.0.0.1:5001 |
+| **Alpaca app** | Full manual trading / account management | app.alpaca.markets (Paper) |
+
+> **Why controls aren't on the *public* dashboard:** placing trades needs your secret
+> Alpaca key, which can't live in a public webpage (anyone could trade your account).
+> So the control panel runs locally where your keys are safe. The autonomous bot still
+> trades 24/7 in the cloud — the control panel is just your cockpit when you want to act.
+> Pause/resume from it syncs to the cloud bot via `state/control.json`.
+
 ## How it works (the short version)
 
 ```
@@ -180,8 +194,12 @@ python backtest.py --source synthetic               # offline, no network
 # Dry-run one cycle with no broker keys (offline simulator)
 python run.py --broker sim
 
-# View the dashboard locally in your browser (after a run populates docs/data.json)
+# View the read-only dashboard locally (after a run populates docs/data.json)
 python -m http.server 8000 --directory docs    # then open http://127.0.0.1:8000
+
+# INTERACTIVE control panel — view live account, pause/resume, place manual
+# trades, "ask the agent", + market-research split-screen. Holds keys locally.
+python control.py                              # then open http://127.0.0.1:5001
 
 # Research / optimization (all offline once the cache is built)
 python tools/build_data_cache.py            # download ~12y real data -> data/cache/

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Zimupaper · Control Panel</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#131823;--panel2:#1a2030;--line:#242c3d;--txt:#e6ebf5;
+    --muted:#8a94a8;--accent:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--teal:#14b8a6;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  h1{font-size:20px;margin:0}
+  h1 .sub{color:var(--muted);font-weight:400;font-size:13px;margin-left:8px}
+  .badge{padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase}
+  .badge.paper{background:rgba(59,130,246,.15);color:#7eb0ff}
+  .badge.local{background:rgba(34,197,94,.15);color:#7ee2a4;margin-left:6px}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:8px 16px;
+    border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--sans)}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  #researchView{display:none}
+  body.mode-research #controlView{display:none}
+  body.mode-research #researchView{display:block}
+  body.mode-split #researchView{display:block}
+  body.mode-split .wrap{max-width:1640px}
+  body.mode-split #views{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:1100px){body.mode-split #views{grid-template-columns:1fr}}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .card .label{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px}
+  .card .value{font-size:24px;font-weight:650;margin-top:6px;font-variant-numeric:tabular-nums}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+  .panel h2{font-size:14px;margin:0 0 14px;text-transform:uppercase;letter-spacing:.6px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{font-family:var(--sans);font-weight:600;border:none;border-radius:8px;padding:10px 16px;
+    cursor:pointer;font-size:13px}
+  .btn-pause{background:var(--amber);color:#1a1205}
+  .btn-resume{background:var(--green);color:#04210f}
+  .btn-flat{background:var(--red);color:#fff}
+  .btn-ask{background:var(--accent);color:#fff}
+  .btn-buy{background:var(--green);color:#04210f}
+  .btn-sell{background:var(--red);color:#fff}
+  input,select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    padding:9px 11px;border-radius:8px;font-size:14px}
+  label{font-size:13px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:7px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-size:11.5px;text-transform:uppercase}
+  .muted{color:var(--muted)}.small{font-size:12px}.pos{color:var(--green)}.neg{color:var(--red)}
+  .msg{margin-top:10px;font-size:13px;padding:8px 12px;border-radius:8px;display:none}
+  .msg.ok{background:rgba(34,197,94,.12);color:#7ee2a4;display:block}
+  .msg.err{background:rgba(239,68,68,.12);color:#ff9b9b;display:block}
+  .empty{color:var(--muted);text-align:center;padding:24px}
+  .research-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .research-bar input{flex:1;min-width:220px}
+  .qchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .qchip{background:var(--panel2);border:1px solid var(--line);color:var(--muted);padding:4px 10px;
+    border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+  .research-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;align-items:start}
+  @media(max-width:980px){.research-grid{grid-template-columns:1fr}}
+  .tv-pane{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
+  .statepill{padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .statepill.run{background:rgba(34,197,94,.15);color:#7ee2a4}
+  .statepill.paused{background:rgba(245,158,11,.18);color:#f5d390}
+</style>
+</head>
+<body class="mode-control">
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="title">Zimupaper <span class="sub">control panel</span></h1>
+      <div class="muted small" id="acctline">connecting to your account…</div>
+    </div>
+    <div><span class="badge paper">paper</span><span class="badge local">local · keys safe</span></div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-view="control" onclick="setView('control')">🎛️ Control</button>
+    <button class="tab" data-view="research" onclick="setView('research')">📈 Market Research</button>
+    <button class="tab" data-view="split" onclick="setView('split')">⬛ Split View</button>
+  </div>
+
+  <div id="views">
+  <div id="controlView">
+    <div class="grid" id="kpis"></div>
+
+    <div class="panel">
+      <h2>Bot controls</h2>
+      <div class="row">
+        <span>Status: <span id="statePill" class="statepill run">running</span></span>
+        <button id="pauseBtn" class="btn-pause" onclick="togglePause()">⏸ Pause bot</button>
+        <button class="btn-flat" onclick="flatten()">⚠ Flatten all positions</button>
+        <button class="btn-ask" onclick="askAgent()">💬 Ask the agent</button>
+      </div>
+      <div class="msg" id="ctrlMsg"></div>
+      <div class="msg" id="agentMsg" style="background:var(--panel2);color:var(--txt)"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Place a manual trade</h2>
+      <div class="row">
+        <input id="oSym" placeholder="Symbol (e.g. AAPL)" style="width:150px" />
+        <select id="oSide"><option value="buy">Buy</option><option value="sell">Sell</option></select>
+        <span>$<input id="oAmt" type="number" placeholder="amount" style="width:120px" /></span>
+        <label><input type="checkbox" id="oPause" checked /> pause bot first</label>
+        <button class="btn-buy" id="oSubmit" onclick="placeOrder()">Submit order</button>
+      </div>
+      <div class="muted small" style="margin-top:8px">Tip: for a full exit, choose Sell and leave amount blank. Manual trades in the bot's universe (SPY/QQQ/sector ETFs) may be rebalanced on its next run — pausing first avoids that.</div>
+      <div class="msg" id="orderMsg"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Live positions</h2>
+      <div id="positions" class="empty">loading…</div>
+    </div>
+  </div><!-- /controlView -->
+
+  <div id="researchView">
+    <div class="research-bar">
+      <input id="symInput" placeholder="Search any ticker — e.g. AAPL, TSLA, NVDA, SPY"
+             onkeydown="if(event.key==='Enter')loadResearch(this.value)" />
+      <button class="btn-ask" onclick="loadResearch(document.getElementById('symInput').value)">Load</button>
+    </div>
+    <div class="qchips" id="qchips"></div>
+    <div id="tvTape" style="margin-bottom:14px"></div>
+    <div class="research-grid">
+      <div class="tv-pane"><div id="tvChart" style="height:520px"></div></div>
+      <div>
+        <div class="tv-pane"><div id="tvInfo"></div></div>
+        <div class="tv-pane"><div id="tvTech" style="height:400px"></div></div>
+        <div class="tv-pane"><div id="tvNews" style="height:420px"></div></div>
+      </div>
+    </div>
+    <div class="muted small">Market data &amp; charts by TradingView (free). Research only — not advice.</div>
+  </div><!-- /researchView -->
+  </div>
+</div>
+
+<script>
+const money=x=>"$"+(x||0).toLocaleString(undefined,{maximumFractionDigits:0});
+const pct=x=>(x>=0?"+":"")+(x*100).toFixed(2)+"%";
+async function jget(u){return (await fetch(u)).json();}
+async function jpost(u,b){return (await (await fetch(u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(b||{})})).json());}
+function msg(id,text,ok){const e=document.getElementById(id);e.textContent=text;e.className="msg "+(ok?"ok":"err");}
+
+let paused=false;
+async function refresh(){
+  const a=await jget("/api/account");
+  if(a.ok){
+    document.getElementById("acctline").textContent=`Equity ${money(a.equity)} · Cash ${money(a.cash)} · Buying power ${money(a.buying_power)}`;
+    document.getElementById("kpis").innerHTML=[
+      ["Equity",money(a.equity)],["Cash",money(a.cash)],["Buying power",money(a.buying_power)]
+    ].map(k=>`<div class="card"><div class="label">${k[0]}</div><div class="value">${k[1]}</div></div>`).join("");
+  } else { document.getElementById("acctline").textContent="account error: "+a.error; }
+  const s=await jget("/api/state");
+  if(s.ok){ paused=s.paused; updatePill(); }
+  const p=await jget("/api/positions");
+  if(p.ok){
+    document.getElementById("positions").innerHTML = p.positions.length ? `
+      <table><thead><tr><th>Symbol</th><th>Qty</th><th>Avg</th><th>Price</th><th>Value</th></tr></thead><tbody>`+
+      p.positions.map(x=>`<tr><td><b>${x.symbol}</b></td><td>${x.qty}</td><td>$${x.avg}</td><td>$${x.price}</td><td>${money(x.value)}</td></tr>`).join("")+
+      `</tbody></table>` : '<div class="empty">Flat — no open positions.</div>';
+  }
+}
+function updatePill(){
+  const pill=document.getElementById("statePill"), btn=document.getElementById("pauseBtn");
+  pill.textContent=paused?"paused":"running"; pill.className="statepill "+(paused?"paused":"run");
+  btn.textContent=paused?"▶ Resume bot":"⏸ Pause bot";
+  btn.className=paused?"btn-resume":"btn-pause";
+}
+async function togglePause(){
+  const r=await jpost(paused?"/api/resume":"/api/pause",{push:true});
+  if(r.ok){ paused=r.manual_pause; updatePill();
+    msg("ctrlMsg",(paused?"Bot paused.":"Bot resumed.")+(r.pushed_to_cloud?" Synced to the cloud bot.":" (saved locally; will sync on next git push)"),true);
+  } else msg("ctrlMsg","Error: "+(r.error||"failed"),false);
+}
+async function flatten(){
+  if(!confirm("Close ALL positions now? This sells everything the account holds."))return;
+  const r=await jpost("/api/flatten");
+  msg("ctrlMsg", r.ok?"Flatten sent. "+(r.results||[]).map(x=>x.symbol+":"+(x.ok?"ok":x.note)).join(", "):"Error: "+r.error, r.ok);
+  refresh();
+}
+async function placeOrder(){
+  const sym=document.getElementById("oSym").value, side=document.getElementById("oSide").value,
+        amt=document.getElementById("oAmt").value, ap=document.getElementById("oPause").checked;
+  if(!sym){msg("orderMsg","Enter a symbol.",false);return;}
+  const body={symbol:sym,side:side,auto_pause:ap}; if(amt) body.notional=parseFloat(amt);
+  const r=await jpost("/api/order",body);
+  if(r.ok){ msg("orderMsg",`Order ok (${r.note||"submitted"}).`,true); if(ap){paused=true;updatePill();} refresh(); }
+  else msg("orderMsg","Error: "+(r.error||r.note||"failed"),false);
+}
+async function askAgent(){
+  document.getElementById("agentMsg").className="msg ok"; document.getElementById("agentMsg").textContent="Thinking…";
+  const r=await jget("/api/explain");
+  const e=document.getElementById("agentMsg"); e.className="msg"; e.style.display="block";
+  e.innerHTML = r.ok ? r.plain.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>') : "Error: "+r.error;
+}
+
+// ---- TradingView research ----
+function setView(v){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));
+  document.body.className='mode-'+v;
+  if((v==='research'||v==='split')&&!window._tv){window._tv=true;initResearch();}
+}
+function tvWidget(id,script,cfg){const c=document.getElementById(id);if(!c)return;
+  c.innerHTML='<div class="tradingview-widget-container__widget"></div>';
+  const s=document.createElement('script');s.type='text/javascript';s.async=true;
+  s.src='https://s3.tradingview.com/external-embedding/'+script;s.innerHTML=JSON.stringify(cfg);c.appendChild(s);}
+function loadResearch(sym){sym=(sym||'SPY').toString().toUpperCase().trim()||'SPY';
+  document.getElementById('symInput').value=sym;
+  tvWidget('tvChart','embed-widget-advanced-chart.js',{autosize:true,symbol:sym,interval:'D',timezone:'Etc/UTC',theme:'dark',style:'1',locale:'en',allow_symbol_change:true,support_host:'https://www.tradingview.com'});
+  tvWidget('tvInfo','embed-widget-symbol-info.js',{symbol:sym,width:'100%',locale:'en',colorTheme:'dark',isTransparent:true});
+  tvWidget('tvTech','embed-widget-technical-analysis.js',{symbol:sym,interval:'1D',width:'100%',height:400,isTransparent:true,showIntervalTabs:true,colorTheme:'dark',locale:'en'});
+  tvWidget('tvNews','embed-widget-timeline.js',{feedMode:'symbol',symbol:sym,isTransparent:true,displayMode:'regular',width:'100%',height:420,colorTheme:'dark',locale:'en'});}
+function initResearch(){
+  tvWidget('tvTape','embed-widget-ticker-tape.js',{symbols:[{proName:'SPY',title:'S&P 500'},{proName:'QQQ',title:'Nasdaq 100'},{proName:'DIA',title:'Dow'},{proName:'IWM',title:'Small Caps'},{proName:'GLD',title:'Gold'},{proName:'TLT',title:'Treasuries'}],colorTheme:'dark',isTransparent:true,displayMode:'adaptive',locale:'en'});
+  const picks=['SPY','QQQ','DIA','IWM','XLK','XLF','XLV','XLE','GLD','TLT','AAPL','NVDA','TSLA','MSFT'];
+  document.getElementById('qchips').innerHTML=picks.map(s=>`<span class="qchip" onclick="loadResearch('${s}')">${s}</span>`).join('');
+  loadResearch('SPY');
+}
+refresh(); setInterval(refresh,20000);
+</script>
+</body>
+</html>

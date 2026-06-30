@@ -8,5 +8,8 @@ python-dotenv>=1.0
 # Backtest data source (optional; bot falls back to synthetic data if absent)
 yfinance>=0.2.40
 
+# Local control panel (optional — only needed to run control.py)
+flask>=3.0
+
 # Tests
 pytest>=8.0

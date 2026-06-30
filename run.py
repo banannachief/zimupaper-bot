@@ -23,6 +23,21 @@ from src.engine import run_cycle
 from src.state import State
 
 
+CONTROL_PATH = os.path.join(os.path.dirname(__file__), "state", "control.json")
+
+
+def _apply_control(state) -> None:
+    """Apply external control flags (set by the dashboard control panel) — the
+    bot reads this file but never writes it, so there's no commit conflict."""
+    try:
+        with open(CONTROL_PATH, "r", encoding="utf-8") as fh:
+            ctrl = json.load(fh)
+        if "manual_pause" in ctrl:
+            state.manual_pause = bool(ctrl["manual_pause"])
+    except Exception:
+        pass
+
+
 def notify_discord(webhook: str, summary: dict) -> None:
     if not webhook:
         return
@@ -107,8 +122,17 @@ def main() -> int:
         print(f"ERROR: {e}")
         return 2
 
-    state = State.load()
-    summary = run_cycle(broker, config, state, render=not args.no_render, persist=True)
+    # Sim/dry runs use a SEPARATE scratch state file so they can never pollute
+    # the real account's equity curve / decision history.
+    is_sim = config.broker == "sim"
+    state_path = (os.path.join(os.path.dirname(__file__), "state", "sim_state.json")
+                  if is_sim else None)
+    state = State.load(state_path)
+    _apply_control(state)   # honour pause/resume set via the dashboard control panel
+    summary = run_cycle(broker, config, state, render=not args.no_render,
+                        persist=not is_sim)            # real runs persist to default path
+    if is_sim:
+        state.save(state_path)                          # sim writes only to scratch file
 
     print(json.dumps(summary, indent=2, default=str))
     notify_discord(secrets.discord_webhook or os.getenv("DISCORD_WEBHOOK_URL", ""), summary)

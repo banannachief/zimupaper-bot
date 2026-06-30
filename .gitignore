@@ -22,3 +22,4 @@ Thumbs.db
 scratch/
 scratch_*.out
 *.log
+sim_state.json
