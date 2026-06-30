@@ -2,11 +2,11 @@
   "account_label": "Zimupaper",
   "mode": "paper",
   "preview": false,
-  "updated_at": "2026-06-29T22:12:13.702655+00:00",
+  "updated_at": "2026-06-30T15:36:10.192941+00:00",
   "weekly_target": 0.01,
   "summary": {
     "starting_equity": 99992.9,
-    "equity": 99993.46,
+    "equity": 99993.44,
     "peak_equity": 99993.58,
     "total_return": 0.0,
     "weekly_return": -0.0,
@@ -52,6 +52,10 @@
     {
       "t": "2026-06-29T22:12:13.702655+00:00",
       "equity": 99993.46
+    },
+    {
+      "t": "2026-06-30T15:36:10.192941+00:00",
+      "equity": 99993.44
     }
   ],
   "benchmark_curve": [
@@ -86,6 +90,10 @@
     {
       "t": "2026-06-29T22:12:13.702655+00:00",
       "value": 101570.91
+    },
+    {
+      "t": "2026-06-30T15:36:10.192941+00:00",
+      "value": 102159.06
     }
   ],
   "positions": [],
@@ -121,6 +129,16 @@
     }
   ],
   "decisions": [
+    {
+      "t": "2026-06-30T15:36:10.192941+00:00",
+      "regime": "bull",
+      "strategies": {
+        "mean_reversion": 1.0,
+        "defensive": 0.0
+      },
+      "weights": {},
+      "note": "regime=bull(uptrend, calm); risk_scale=1.00"
+    },
     {
       "t": "2026-06-29T19:07:28.172082+00:00",
       "regime": "bull",
