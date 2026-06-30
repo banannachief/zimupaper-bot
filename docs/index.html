@@ -62,6 +62,32 @@
   @media(max-width:760px){.two{grid-template-columns:1fr}}
   .notebox{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:pre-wrap}
   a{color:var(--accent)}
+  /* --- tabs + split views --- */
+  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .tab{background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--sans)}
+  .tab:hover{color:var(--txt)}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  #researchView{display:none}
+  body.mode-research #botView{display:none}
+  body.mode-research #researchView{display:block}
+  body.mode-split #researchView{display:block}
+  body.mode-split .wrap{max-width:1640px}
+  body.mode-split #views{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:1100px){body.mode-split #views{grid-template-columns:1fr}}
+  .research-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .research-bar input{background:var(--panel);border:1px solid var(--line);color:var(--txt);
+    padding:9px 12px;border-radius:8px;font-size:14px;min-width:240px;flex:1}
+  .research-bar button{background:var(--accent);color:#fff;border:none;padding:9px 16px;
+    border-radius:8px;cursor:pointer;font-weight:600;font-size:13px}
+  .qchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .qchip{background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+    padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+  .qchip:hover{color:var(--txt);border-color:var(--accent)}
+  .research-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;align-items:start}
+  @media(max-width:980px){.research-grid{grid-template-columns:1fr}}
+  .tv-pane{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -87,6 +113,14 @@
     not a guarantee. No algorithm can guarantee positive returns. Nothing here is financial advice.
   </div>
 
+  <div class="tabs">
+    <button class="tab active" data-view="bot" onclick="setView('bot')">📊 Bot Dashboard</button>
+    <button class="tab" data-view="research" onclick="setView('research')">📈 Market Research</button>
+    <button class="tab" data-view="split" onclick="setView('split')">⬛ Split View</button>
+  </div>
+
+  <div id="views">
+  <div id="botView" class="view">
   <div class="grid" id="kpis"></div>
 
   <div class="panel">
@@ -124,6 +158,27 @@
     <h2>Activity log</h2>
     <div class="notebox" id="notes"></div>
   </div>
+  </div><!-- /botView -->
+
+  <div id="researchView" class="view">
+    <div class="research-bar">
+      <input id="symInput" placeholder="Search any ticker — e.g. AAPL, TSLA, NVDA, SPY"
+             onkeydown="if(event.key==='Enter')loadResearch(this.value)" />
+      <button onclick="loadResearch(document.getElementById('symInput').value)">Load</button>
+    </div>
+    <div class="qchips" id="qchips"></div>
+    <div id="tvTape" class="tradingview-widget-container" style="margin-bottom:14px"></div>
+    <div class="research-grid">
+      <div class="tv-pane"><div id="tvChart" class="tradingview-widget-container" style="height:520px"></div></div>
+      <div>
+        <div class="tv-pane"><div id="tvInfo" class="tradingview-widget-container"></div></div>
+        <div class="tv-pane"><div id="tvTech" class="tradingview-widget-container" style="height:400px"></div></div>
+        <div class="tv-pane"><div id="tvNews" class="tradingview-widget-container" style="height:420px"></div></div>
+      </div>
+    </div>
+    <div class="updated" style="margin-top:6px">Market data &amp; charts by TradingView (free). For research only — not advice.</div>
+  </div><!-- /researchView -->
+  </div><!-- /views -->
 
   <div class="updated" style="text-align:center">
     Built by an autonomous Claude agent · data refreshes when the bot runs ·
@@ -135,6 +190,48 @@
 const pct = x => (x>=0?"+":"") + (x*100).toFixed(2) + "%";
 const money = x => "$" + (x||0).toLocaleString(undefined,{maximumFractionDigits:0});
 const cls = x => x>0?"pos":(x<0?"neg":"neu");
+
+// ---- split-screen tabs + market research (TradingView free widgets) ----
+function setView(v){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===v));
+  document.body.className = 'mode-'+v;
+  if((v==='research'||v==='split') && !window._tvLoaded){ window._tvLoaded=true; initResearch(); }
+}
+function tvWidget(id, script, cfg){
+  const c = document.getElementById(id);
+  if(!c) return;
+  c.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+  const s = document.createElement('script');
+  s.type='text/javascript'; s.async=true;
+  s.src='https://s3.tradingview.com/external-embedding/'+script;
+  s.innerHTML = JSON.stringify(cfg);
+  c.appendChild(s);
+}
+function loadResearch(sym){
+  sym = (sym||'SPY').toString().toUpperCase().trim() || 'SPY';
+  document.getElementById('symInput').value = sym;
+  tvWidget('tvChart','embed-widget-advanced-chart.js',{autosize:true,symbol:sym,interval:'D',
+    timezone:'Etc/UTC',theme:'dark',style:'1',locale:'en',allow_symbol_change:true,
+    hide_side_toolbar:false,support_host:'https://www.tradingview.com'});
+  tvWidget('tvInfo','embed-widget-symbol-info.js',{symbol:sym,width:'100%',locale:'en',
+    colorTheme:'dark',isTransparent:true});
+  tvWidget('tvTech','embed-widget-technical-analysis.js',{symbol:sym,interval:'1D',width:'100%',
+    height:400,isTransparent:true,showIntervalTabs:true,colorTheme:'dark',locale:'en'});
+  tvWidget('tvNews','embed-widget-timeline.js',{feedMode:'symbol',symbol:sym,isTransparent:true,
+    displayMode:'regular',width:'100%',height:420,colorTheme:'dark',locale:'en'});
+}
+function initResearch(){
+  // ticker tape across the bot's universe
+  tvWidget('tvTape','embed-widget-ticker-tape.js',{symbols:[
+    {proName:'SPY',title:'S&P 500'},{proName:'QQQ',title:'Nasdaq 100'},{proName:'DIA',title:'Dow'},
+    {proName:'IWM',title:'Small Caps'},{proName:'GLD',title:'Gold'},{proName:'TLT',title:'Treasuries'}],
+    colorTheme:'dark',isTransparent:true,displayMode:'adaptive',locale:'en'});
+  // quick-pick chips = the bot's universe + popular names
+  const picks=['SPY','QQQ','DIA','IWM','XLK','XLF','XLV','XLE','GLD','TLT','AAPL','NVDA','TSLA','MSFT'];
+  document.getElementById('qchips').innerHTML = picks.map(s=>
+    `<span class="qchip" onclick="loadResearch('${s}')">${s}</span>`).join('');
+  loadResearch('SPY');
+}
 
 async function load(){
   let d;
