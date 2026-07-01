@@ -2,7 +2,7 @@
   "account_label": "Zimupaper",
   "mode": "paper",
   "preview": false,
-  "updated_at": "2026-06-30T22:17:56.513455+00:00",
+  "updated_at": "2026-07-01T15:47:39.081447+00:00",
   "weekly_target": 0.01,
   "summary": {
     "starting_equity": 99992.9,
@@ -68,6 +68,10 @@
     {
       "t": "2026-06-30T22:17:56.513455+00:00",
       "equity": 99993.44
+    },
+    {
+      "t": "2026-07-01T15:47:39.081447+00:00",
+      "equity": 99993.44
     }
   ],
   "benchmark_curve": [
@@ -118,6 +122,10 @@
     {
       "t": "2026-06-30T22:17:56.513455+00:00",
       "value": 102364.71
+    },
+    {
+      "t": "2026-07-01T15:47:39.081447+00:00",
+      "value": 102660.84
     }
   ],
   "positions": [],
@@ -127,6 +135,14 @@
   },
   "capital_base": 20000,
   "trades": [
+    {
+      "t": "2026-07-01T15:47:39.081447+00:00",
+      "symbol": "XLE",
+      "side": "buy",
+      "qty": 0.0,
+      "price": 0.0,
+      "reason": "entry"
+    },
     {
       "t": "2026-06-29T16:40:20.683672+00:00",
       "symbol": "PHM",
@@ -153,6 +169,18 @@
     }
   ],
   "decisions": [
+    {
+      "t": "2026-07-01T15:47:39.081447+00:00",
+      "regime": "bull",
+      "strategies": {
+        "mean_reversion": 1.0,
+        "defensive": 0.0
+      },
+      "weights": {
+        "XLE": 0.25
+      },
+      "note": "regime=bull(uptrend, calm); risk_scale=1.00"
+    },
     {
       "t": "2026-06-30T18:04:24.084462+00:00",
       "regime": "bull",
