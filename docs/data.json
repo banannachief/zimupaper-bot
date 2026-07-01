@@ -2,16 +2,16 @@
   "account_label": "Zimupaper",
   "mode": "paper",
   "preview": false,
-  "updated_at": "2026-07-01T18:04:21.937680+00:00",
+  "updated_at": "2026-07-01T20:26:17.453570+00:00",
   "weekly_target": 0.01,
   "summary": {
     "starting_equity": 99992.9,
-    "equity": 99990.69,
+    "equity": 99981.08,
     "peak_equity": 99993.58,
-    "total_return": -0.0,
-    "weekly_return": -0.0,
-    "biweekly_return": -0.0,
-    "drawdown": -0.0,
+    "total_return": -0.0001,
+    "weekly_return": -0.0001,
+    "biweekly_return": -0.0001,
+    "drawdown": -0.0001,
     "week_start_equity": 99993.58,
     "week_locked": false,
     "biweek_start_equity": 99992.9,
@@ -76,6 +76,10 @@
     {
       "t": "2026-07-01T18:04:21.937680+00:00",
       "equity": 99990.69
+    },
+    {
+      "t": "2026-07-01T20:26:17.453570+00:00",
+      "equity": 99981.08
     }
   ],
   "benchmark_curve": [
@@ -134,14 +138,18 @@
     {
       "t": "2026-07-01T18:04:21.937680+00:00",
       "value": 102492.21
+    },
+    {
+      "t": "2026-07-01T20:26:17.453570+00:00",
+      "value": 102229.66
     }
   ],
   "positions": [
     {
       "symbol": "XLE",
       "qty": 68.6869,
-      "price": 52.95,
-      "value": 3636.63,
+      "price": 52.81,
+      "value": 3627.36,
       "stop": 50.02
     }
   ],
@@ -239,6 +247,7 @@
     }
   ],
   "notes": [
+    "2026-07-01: HOLD \u2014 market closed",
     "2026-06-30: HOLD \u2014 market closed",
     "2026-06-30: HOLD \u2014 market closed",
     "2026-06-29: HOLD \u2014 market closed",
