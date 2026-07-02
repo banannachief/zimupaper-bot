@@ -2,16 +2,16 @@
   "account_label": "Zimupaper",
   "mode": "paper",
   "preview": false,
-  "updated_at": "2026-07-02T15:23:11.915835+00:00",
+  "updated_at": "2026-07-02T17:12:23.242008+00:00",
   "weekly_target": 0.01,
   "summary": {
     "starting_equity": 99992.9,
-    "equity": 100020.22,
+    "equity": 100004.08,
     "peak_equity": 100020.22,
-    "total_return": 0.0003,
-    "weekly_return": 0.0003,
-    "biweekly_return": 0.0003,
-    "drawdown": 0.0,
+    "total_return": 0.0001,
+    "weekly_return": 0.0001,
+    "biweekly_return": 0.0001,
+    "drawdown": -0.0002,
     "week_start_equity": 99993.58,
     "week_locked": false,
     "biweek_start_equity": 99992.9,
@@ -92,6 +92,10 @@
     {
       "t": "2026-07-02T15:23:11.915835+00:00",
       "equity": 100020.22
+    },
+    {
+      "t": "2026-07-02T17:12:23.242008+00:00",
+      "equity": 100004.08
     }
   ],
   "benchmark_curve": [
@@ -166,14 +170,18 @@
     {
       "t": "2026-07-02T15:23:11.915835+00:00",
       "value": 102150.83
+    },
+    {
+      "t": "2026-07-02T17:12:23.242008+00:00",
+      "value": 101651.11
     }
   ],
   "positions": [
     {
       "symbol": "XLE",
       "qty": 68.6869,
-      "price": 53.38,
-      "value": 3666.51,
+      "price": 53.15,
+      "value": 3650.37,
       "stop": 50.52
     }
   ],
